@@ -1,0 +1,26 @@
+{% extends 'flow/base.html' %}
+
+{% block content %}
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+
+	<div>
+		<table>
+		<tr>
+			<th>IP Source</th>		
+			<th>IP Destination</th>
+			<th>IP Protocol</th>
+			<th>Traffic</th>
+		</tr>
+			{% for p in top_con %}
+				<td>{{ p.ip_src }}</td>
+				<td>{{ p.ip_dst }}</td>
+				<td>{{ p.ip_proto }}</td>
+				<td>{{ p.Traffic | filesizeformat}}</td>	
+			</tr>
+			{% endfor %}
+		</table>
+	</div>
+
+
+{% endblock %}

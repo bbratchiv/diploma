@@ -1,0 +1,26 @@
+{% load staticfiles %}
+<html>
+
+<head>
+	<title> Netflow Discovery </title>
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css">
+	<link rel="stylesheet" href="{% static 'css/flow.css' %}">
+	<link href='https://fonts.googleapis.com/css?family=Josefin+Sans:600,700italic,700,600italic,400italic,300italic,400' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+<div class="page-header">
+	<h1><a href="/">Netflow Discovery</a></h1>
+</div>
+
+<script src="{% static 'jquery/jquery.min.js' %}"></script>
+
+<div class="content">
+	{% block content %}
+	{% endblock %}
+</div>	
+
+
+</body>
+</html>
