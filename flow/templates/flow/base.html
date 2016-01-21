@@ -10,17 +10,28 @@
 </head>
 
 <body>
-<div class="page-header">
-	<h1><a href="/">Netflow Discovery</a></h1>
-</div>
 
-<script src="{% static 'jquery/jquery.min.js' %}"></script>
-
-<div class="content">
+	<div id="page-header">
+		<h1><a href="/">Netflow Discovery</a></h1>
+	</div>
+	
+	<div id="menu">
+		<ul>
+		  <li><a href="default.asp">Home</a></li>
+		  <li><a href="news.asp">News</a></li>
+		  <li><a href="contact.asp">Contact</a></li>
+		  <li><a href="about.asp">About</a></li>
+		</ul> 
+	</div>
+	
+	<script type="text/javascript" src={% static 'jquery.min.js' %}></script>
+	
 	{% block content %}
+	
 	{% endblock %}
-</div>	
-
-
+	
+	<footer>Server time: {% now "jS F Y H:i" %}
+	</footer>
 </body>
+
 </html>
