@@ -5,7 +5,7 @@
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
 
 {% load chartit %}
-{{charts|load_charts:"top_con_chart, top_app_chart"}}
+{{charts|load_charts:"top_con_chart, top_proto_chart, top_app_chart"}}
 
 <div class="table-chart">
 <div id="top_con_chart"></div>
@@ -29,16 +29,33 @@
 </div>
 
 <div class="table-chart">
-<div id="top_app_chart"></div>
+<div id="top_proto_chart"></div>
 	
 	<table>
-	<caption> Top 5 IP Protocols</caption>
+	<caption> Top 10 IP Protocols</caption>
 	<tr>
 		<th>IP Protocol</th>
 		<th>Traffic</th>
 	</tr>
 		{% for p in top_proto %}
 			<td>{{ p.ip_proto }}</td>
+			<td>{{ p.traffic | filesizeformat}}</td>	
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+
+<div class="table-chart">
+<div id="top_app_chart"></div>
+	
+	<table>
+	<caption> Top 10 Applications</caption>
+	<tr>
+		<th>Application</th>
+		<th>Traffic</th>
+	</tr>
+		{% for p in top_app %}
+			<td>{{ p.dst_port }}</td>
 			<td>{{ p.traffic | filesizeformat}}</td>	
 		</tr>
 		{% endfor %}

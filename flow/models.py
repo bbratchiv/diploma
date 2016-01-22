@@ -8,7 +8,28 @@
 from __future__ import unicode_literals
 from django.utils import timezone
 from django.db import models
+from django.db.models import Sum
 
+class FlowQuerySets(models.QuerySet):
+    def top_con(self):
+        return self.values('ip_src', 'ip_dst', 'ip_proto')\
+                .annotate(traffic=Sum('bytes')).order_by('-traffic')[:10]
+
+    def top_proto(self): 
+        return self.values('ip_proto')\
+            .annotate(traffic=Sum('bytes')).order_by('-traffic')[:10]
+
+    def top_app(self):
+        import socket
+        query = self.values('dst_port')\
+            .annotate(traffic=Sum('bytes')).order_by('-traffic')[:10]
+        for obj in query:
+            try:
+                if obj['dst_port']:
+                    obj['dst_port'] = socket.getservbyport(obj['dst_port']) +' (port ' + str(obj['dst_port'])+')'
+            except OSError:
+                obj['dst_port'] = 'Unknown Application (port ' + str(obj['dst_port'])+')'
+        return query
 
 class Flow(models.Model):
     id = models.BigIntegerField(primary_key = True)
@@ -22,6 +43,10 @@ class Flow(models.Model):
     stamp_inserted = models.DateTimeField()
     stamp_updated = models.DateTimeField(blank=True, null=True)
 
+    objects = FlowQuerySets.as_manager()
+
+
     class Meta:
         managed = False
         db_table = 'acct'
+

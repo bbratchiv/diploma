@@ -1,17 +1,14 @@
 from django.shortcuts import render
-from django.utils import timezone
-from .models import Flow
+from .models import Flow, FlowQuerySets
 from chartit import DataPool, Chart
-from django.db.models import Sum
 import socket
 
 
 def top_conversations_app(request):
+    top_con = Flow.objects.top_con()
+    top_proto = Flow.objects.top_proto()  
+    top_app = Flow.objects.top_app()
 
-    #top_con = Flow.objects.raw('SELECT id, ip_src, ip_dst, src_port, ip_proto, sum(bytes) as Traffic FROM acct GROUP BY ip_src, ip_dst, ip_proto ORDER BY 6 DESC limit 10;') 
-    top_con = Flow.objects.values('ip_src', 'ip_dst', 'ip_proto').annotate(traffic=Sum('bytes')).order_by('-traffic')[:10]
-    top_proto = Flow.objects.values('ip_proto').annotate(traffic=Sum('bytes')).order_by('-traffic')[:5]
-    
     #Step 1: Create a DataPool with the data we want to retrieve.
     top_con_ds = DataPool(series=[{'options': {
     		'source': top_con,
@@ -22,6 +19,11 @@ def top_conversations_app(request):
         'source': top_proto,
         },
         'terms': ['traffic', 'ip_proto' ]}])
+
+    top_app_ds = DataPool(series=[{'options': {
+        'source': top_app,
+        },
+        'terms': ['traffic', 'dst_port' ]}])
 
     #Step 2: Create the Chart object
     top_con_chart = Chart(
@@ -37,12 +39,16 @@ def top_conversations_app(request):
                 'terms':{'ip_proto': ['traffic']}}],
             chart_options =
               {'title': {
-                   'text': 'Top 5 IP Protocols'}})
+                   'text': 'Top 10 IP Protocols'}})
+    top_app_chart = Chart(
+            datasource = top_app_ds,
+            series_options =[{'options':{'type': 'pie','stacking': False},
+                'terms':{'dst_port': ['traffic']}}],
+            chart_options =
+              {'title': {
+                   'text': 'Top 10 Applications'}})
 
     return render (request, 'flow/home.html', {'top_con': top_con, 
-        'charts': [top_con_chart, top_proto_chart], 'top_proto': top_proto})
+        'top_proto': top_proto, 'top_app' : top_app,
+        'charts': [top_con_chart, top_proto_chart, top_app_chart]})
 
-
-def get_app (obj):
-    for p in obj:
-        return socket.getservbyport(p)
