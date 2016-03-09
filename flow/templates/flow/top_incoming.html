@@ -8,9 +8,9 @@
 {{charts|load_charts:"top_ip_in_chart, top_proto_in_chart, top_app_in_chart, top_packets_in_chart"}}
 
 
-<div id="select" align="right">
+<div id="select">
 <hr id="line">
-<select onchange="if (this.value) window.location.href=this.value">
+<select id="select", onchange="if (this.value) window.location.href=this.value">
     <option value="">Choose Time Interval:</option>
     <option value="/top_incoming/1/">1 Hour</option>
     <option value="/top_incoming/6/">6 Hours</option>
@@ -23,7 +23,6 @@
 <div id="top_ip_in_chart"></div>
 
 	<table>
-	<caption>Top 10 Incoming Destinations</caption>	
 	<tr>
 		<th>IP Destination</th>
 		<th>IP Protocol</th>
@@ -42,7 +41,7 @@
 <div id="top_proto_in_chart"></div>
 	
 	<table>
-	<caption> Top 10 Incoming IP Protocols</caption>
+
 	<tr>
 		<th>IP Protocol</th>
 		<th>Traffic</th>
@@ -59,7 +58,7 @@
 <div id="top_app_in_chart"></div>
 	
 	<table>
-	<caption> Top 10 Incoming Applications</caption>
+
 	<tr>
 		<th>Application</th>
 		<th>Traffic</th>

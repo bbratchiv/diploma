@@ -3,24 +3,31 @@
 
 <head>
 	<title> Netflow Discovery </title>
-	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css">
 	<link rel="stylesheet" href="{% static 'css/flow.css' %}">
 	<link href='https://fonts.googleapis.com/css?family=Josefin+Sans:600,700italic,700,600italic,400italic,300italic,400' rel='stylesheet' type='text/css'>
 </head>
 
 <body>
 
-	<div id="page-header">
+	<div class="page-header">
+		{% if user.is_authenticated %}
+		<p class="top-menu">Hello {{ user.username }}<a href="{% url 'django.contrib.auth.views.logout' %}" class = "top-menu">(Log out)</a></p>
+		{% else %}
+		<a href="{% url 'django.contrib.auth.views.login' %}" class = "top-menu">Log in</a>
+		{% endif %}
+
 		<h1><a href="/">Netflow Discovery</a></h1>
 	</div>
-	
+
+	{% block authentication %}
 	<div id="menu">
+
 		<ul>
-		  <li><a id="home" href="/">Home</a></li>
-		  <li><a id="t_i" href="/top_incoming/1/">Top Incoming</a></li>
-		  <li><a id="t_o" href="/top_outgoing/1/">Top Outgoing</a></li>
-		  <li><a href="about.asp">About</a></li>
+		  <li><a href="/"><h3>Home</h3></a></li>
+		  <li><a href="/top_incoming/1/"><h3>Top Incoming</h3></a></li>
+		  <li><a href="/top_outgoing/1/"><h3>Top Outgoing</h3></a></li>
+		  <li><a href="/traffic/"><h3>All Traffic</h3></a></li>
+		  <li><a href="/export/"><h3>Export Data</h3></a></li>
 		</ul> 
 	</div>
 	
@@ -29,6 +36,8 @@
 	{% block content %}
 	
 	{% endblock %}
+	{% endblock %}
+
 	
 	<footer>Server time: {% now "jS F Y H:i" %}
 	</footer>

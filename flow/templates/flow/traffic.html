@@ -1,0 +1,17 @@
+{% extends 'flow/base.html' %}
+
+{% block content %}
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+
+{% load chartit %}
+{{charts|load_charts:"traffic_in_chart, traffic_out_chart"}}
+
+<div class="traffic-chart">
+<div id="traffic_in_chart"></div>
+
+
+<div class="traffic-chart">
+<div id="traffic_out_chart"></div>
+{% endblock %}
+

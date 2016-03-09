@@ -3,22 +3,38 @@ h1 a {
 	font-family: 'Josefin Sans', sans-serif;
 }
 
+label, h2 {
+    font-family: 'Josefin Sans', sans-serif;
+}
+caption {
+        font-family: 'Josefin Sans', bold;
 
-#page-header {
-    : 0px;
-    left: 0px;
+}
+
+.page-header {
     padding: 20px 20px 20px 40px;
     background-color: #00CCCC;
 
 
 }
 
-#page-header h1, #page-header h1 a, #page-header h1 a:visited, #page-header h1 a:active {
+.page-header h1, .page-header h1 a, .page-header h1 a:visited, .page-header h1 a:active {
     color: #ffffff;
     font-size: 24pt;
     text-decoration: none;
 
 }
+
+.top-menu, .top-menu:hover, .top-menu:visited {
+    color: #ffffff;
+    float: right;
+    font-size: 12pt;
+
+    text-decoration: none;
+    font-family: 'Josefin Sans';
+
+ }
+
 
 /* TABLE */
 caption {
@@ -40,11 +56,16 @@ caption {
 
 }
 
+#traffic_out_chart,#traffic_in_chart{
+    display: inline-block;
+    width: 80%;
+    margin: 2em;
+
+}
+
 th {
     background-color: #4CAF50;
     color: white;
-
-
 }
 
 tr:hover {background-color: #f5f5f5}
@@ -57,40 +78,37 @@ ul {
     width: 150px;
     background-color: #00CCCC;
     float: left;
-    height: 1550px;
+    display: inline-block;
+    height: auto;
+    height: 100%;
+
 
 } 
 
-li {
-    height: 80px;
 
-}
 li a {
-
-
-    height: 60px;
+    text-decoration: none;
+    text-align: center;
+    height: 70px;
     display: block;
     color: #ffffff;
-    padding-top: 20px;
-    padding-left: 45px;
+    padding-top: 15px;
+    font-family: 'Josefin Sans', sans-serif;
 }
 
-/* Change the link color on hover */
-#menu a {
-    text-decoration: none;
-}
 #menu a:hover{
     background-color: #979A9C;
 }
 
 #select {
     margin-top: 2em;
+    margin-left: 2em;
 }
 #line {
     margin-left: 2em;
 }
 
-footer {
+footer, .exportTable:after {
     position: fixed;
     bottom:0px;
     height:35px;
@@ -99,4 +117,16 @@ footer {
     color: #ffffff;
     text-align: left;
     padding: 5 5;
+}
+
+#auth {
+    display: inline-block;
+    margin: 2em;
+}
+
+.exportTable {
+    display: inline-block;
+    margin-top: 2em;
+    margin-left: 5em;
+    margin-bottom: +40px;
 }

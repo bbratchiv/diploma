@@ -115,6 +115,13 @@ class FlowQuerySets(models.QuerySet):
         return queryset       
 
 
+    def traffic_in(self):
+        return self.values('stamp_updated').annotate(traffic=Sum('bytes'))\
+                        .order_by('-stamp_updated')
+    def traffic_out(self):
+        return self.values('stamp_updated').annotate(traffic=Sum('bytes'))\
+                        .order_by('-stamp_updated')
+
 class AcctIn1D(models.Model):
     id = models.BigIntegerField(primary_key=True)
     ip_dst = models.CharField(max_length=15)

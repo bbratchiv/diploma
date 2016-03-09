@@ -5,13 +5,24 @@
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
 
 {% load chartit %}
-{{top_ip_out_chart|load_charts:"top_ip_out_chart"}}
+{{charts|load_charts:"top_ip_out_chart, top_proto_out_chart, top_app_out_chart, top_packets_out_chart"}}
+
+
+<div id="select">
+<hr id="line">
+<select id="select", onchange="if (this.value) window.location.href=this.value">
+    <option value="">Choose Time Interval:</option>
+    <option value="/top_incoming/1/">1 Hour</option>
+    <option value="/top_incoming/6/">6 Hours</option>
+    <option value="/top_incoming/24/">24 Hours</option>
+</select>
+</div>
+
 
 <div class="table-chart">
 <div id="top_ip_out_chart"></div>
 
 	<table>
-	<caption>Top 10 Source Locations Out</caption>	
 	<tr>
 		<th>IP Source</th>
 		<th>IP Protocol</th>
@@ -26,5 +37,54 @@
 	</table>
 </div>
 
+<div class="table-chart">
+<div id="top_proto_out_chart"></div>
+	
+	<table>
+	<tr>
+		<th>IP Protocol</th>
+		<th>Traffic</th>
+	</tr>
+		{% for p in top_proto_out %}
+			<td>{{ p.ip_proto }}</td>
+			<td>{{ p.traffic | filesizeformat}}</td>	
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+
+<div class="table-chart">
+<div id="top_app_out_chart"></div>
+	
+	<table>
+	<tr>
+		<th>Application</th>
+		<th>Traffic</th>
+	</tr>
+		{% for p in top_app_out %}
+			<td>{{ p.src_port }}</td>
+			<td>{{ p.traffic | filesizeformat}}</td>	
+		</tr>
+		{% endfor %}
+	</table>
+</div>
+
+<div class="table-chart">
+<div id="top_packets_out_chart"></div>
+	
+	<table>
+	<tr>
+		<th>IP Source</th>
+		<th>Packets</th>
+		<th>Traffic</th>
+	</tr>
+		{% for p in top_packets_out %}
+			<td>{{ p.ip_src }}</td>
+			<td>{{ p.sum_packets }}</td>
+			<td>{{ p.traffic | filesizeformat}}</td>	
+		</tr>
+		{% endfor %}
+	</table>
+</div>
 {% endblock %}
 
