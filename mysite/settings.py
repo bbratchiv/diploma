@@ -84,7 +84,6 @@ DATABASES = {
         'USER': 'site_user',
         'PASSWORD': 'arealsmartpwd',
         'HOST': 'localhost',
-        'PORT': '5678',
     }
 }
 

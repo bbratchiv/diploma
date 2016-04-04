@@ -1,0 +1,153 @@
+{% extends 'flow/base.html' %}
+
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="/static/DataTables/datatables.min.css"/>
+ 
+<script type="text/javascript" src="/static/DataTables/datatables.min.js"></script>
+
+<script type="text/javascript" >
+$(document).ready(function() {
+	showHide();
+	showHideTime();
+    $('#example').DataTable( {
+        "pagingType": "full_numbers",
+        "pageLength": 15,
+        dom: 'Bfrtip',
+        buttons: [
+            'copyFlash',
+            'csvFlash',
+            'pdfFlash',
+            'print'
+        ]
+    } );
+} );
+</script>
+
+
+<script type="text/javascript">
+
+	function showHide(){
+    var selectedValue = document.getElementById("{{ form1.choice_criteria.id_for_label }}").value;
+
+    document.getElementById("id_src_addr").style.display = (selectedValue == "source_ip") ? "inline" : "none";
+    document.getElementById("id_src_addr").required = (selectedValue == "source_ip") ? true : false;
+    document.getElementById("id_src_addr").value = (selectedValue == "source_ip") ? null : "";
+
+    document.getElementById("id_dst_addr").style.display = (selectedValue == "dest_ip") ? "inline" : "none";
+    document.getElementById("id_dst_addr").required = (selectedValue == "dest_ip") ? true : false;
+    document.getElementById("id_dst_addr").value = (selectedValue == "dest_ip") ? null : "";
+
+    document.getElementById("id_port").style.display = (selectedValue == "port1") ? "inline" : "none";
+    document.getElementById("id_port").required = (selectedValue == "port1") ? true : false;
+    document.getElementById("id_port").value = (selectedValue == "port1") ? null : "";
+
+    document.getElementById("id_pFrom").style.display = (selectedValue == "port_range") ? "inline" : "none";
+    document.getElementById("id_pFrom").required = (selectedValue == "port_range") ? true : false;
+    document.getElementById("id_pFrom").value = (selectedValue == "port_range") ? null : "";
+
+    document.getElementById("id_pTo").style.display = (selectedValue == "port_range") ? "inline" : "none";
+    document.getElementById("id_pTo").required  = (selectedValue == "port_range") ? true : false;
+	document.getElementById("id_pTo").value = (selectedValue == "port_range") ? null : "";
+
+    document.getElementById("id_proto").style.display = (selectedValue == "protocol") ? "inline" : "none";
+	document.getElementById("id_proto").required = (selectedValue == "protocol") ? true : false;
+	document.getElementById("id_proto").value = (selectedValue == "protocol") ? null : "";
+}
+
+</script>
+
+<script type="text/javascript">
+<!--
+	function showHideTime(){
+		var	selectedValue = document.getElementById("{{ form1.time_range.id_for_label}}").value;
+		var time_label = document.getElementById("custom_time");
+
+		if (selectedValue == 'custom'){
+			time_label.style.display = "inline";
+		} else {
+			time_label.style.display = "none";
+		}
+	}
+
+-->
+</script>
+
+<form class = "exportTable", action="."  method="POST">	
+	<h2> Custom Report </h2>
+
+	{% csrf_token%} 
+<!---->
+	<p><label>Choose Criteria: {{ form1.choice_criteria }}</label>  
+		
+<!---->
+	{{ form1.src_addr }}
+
+		{% if form1.src_addr.errors %}
+			{% for error in form1.src_addr.errors %}
+				{{ error|escape }}
+			{% endfor %}
+		{% endif %}
+<!---->
+	{{ form1.dst_addr }}
+
+		{% if form1.dst_addr.errors %}
+			{% for error in form1.dst_addr.errors %}
+				{{ error|escape }}
+			{% endfor %}
+		{% endif %}
+<!---->
+	 {{ form1.port }} 
+<!---->
+	 {{ form1.pFrom }} {{ form1.pTo }} 
+<!---->
+	 {{ form1.proto}} </p>
+<!---->
+	<label> Traffic </label>
+		{{form1.traffic_type }} 
+<!---->
+	<p><label> Time Period: {{ form1.time_range }} </label> </p>
+<!---->
+	<label id='custom_time', style='display:none'>
+		<p><label> Start Date </label>
+			{{form1.start_date }}</p>
+
+		<p><label> End Date </label>
+			{{form1.end_date }}</p>
+	</label>
+	<p><input type="submit" name="search", value="Submit", style="width:170px"/></p>
+
+{% if res1 %}
+	<br>
+	<br>
+
+	<table id="example" class="display">
+	{% for object in res1 %}
+		      
+	    {% if forloop.first %}
+	    <thead>		    
+	    	<tr>
+	       		{% for fieldname in object.keys %}		       
+	       			<th>{{ fieldname }}</th>		    
+	       		{% endfor %}	       	
+	    	</tr>
+		</thead>
+		{% endif %}
+
+	    	<tr>		    
+	    	  	{% for key, value in object.items %}
+	    	  		<td> {% if key = 'bytes' %} {{ value | filesizeformat }}
+	    	  		{% else %} {{ value }} {% endif %}</td>
+	    	  	{% endfor %}
+	    	</tr>
+
+	{% endfor %}
+	</table>
+
+{% else %}
+<p> No Result</p>
+{% endif %}
+</form>
+
+{% endblock %}
+

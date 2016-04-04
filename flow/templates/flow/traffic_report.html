@@ -1,0 +1,117 @@
+{% extends 'flow/base.html' %}
+
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="/static/DataTables/datatables.min.css"/>
+ 
+<script type="text/javascript" src="/static/DataTables/datatables.min.js"></script>
+
+<script type="text/javascript" >
+$(document).ready(function() {
+	showHide();
+	showHideTime();
+    $('#example').DataTable( {
+    	"ordering": false,
+        "pagingType": "full_numbers",
+        "pageLength": 15,
+        dom: 'Bfrtip',
+        buttons: [
+            'copyFlash',
+            'csvFlash',
+            'pdfFlash',
+            'print'
+        ]
+    } );
+} );
+</script>
+
+<script type="text/javascript">
+<!--
+	function showHideTime(){
+		var	selectedValue = document.getElementById("{{ form.time_range.id_for_label}}").value;
+		var time_label = document.getElementById("custom_time");
+
+		if (selectedValue == 'custom'){
+			time_label.style.display = "inline";
+		} else {
+			time_label.style.display = "none";
+		}
+	}
+
+-->
+</script>
+
+<script type="text/javascript">
+<!--
+	function showHide(){
+		var chkBox = document.getElementById("{{ form.checkbox.id_for_label }}");
+		var txtBox = document.getElementById("{{ form.address.id_for_label }}");
+		if (chkBox.checked){
+			txtBox.disabled = true;
+			txtBox.value= ""
+		} else {
+			txtBox.disabled = false;
+
+		}
+	}
+-->
+</script>
+
+<form class = "exportTable", action="."  method="POST">	
+	<h2> Traffic Report </h2>
+	{{ form1.non_field_errors }}
+	{% csrf_token%} 
+	<p><label>Choose The Type Of Traffic:</label>
+		{{form.traffic_type }}</p>
+
+	<label> All IP Addresses </label>
+		{{form.checkbox }}
+
+	<label> Or : {{form.address }} </label>
+		{% if form.address.errors %}
+			{% for error in form.address.errors %}
+				{{ error|escape }}
+			{% endfor %}
+		{% endif %}
+
+	<p><label> Time Period: {{ form.time_range }} </label> </p>
+
+	<label id='custom_time', style='display:none'>
+		<p><label> Start Date </label>
+			{{form.start_date }}</p>
+
+		<p><label> End Date </label>
+			{{form.end_date }}</p>
+	</label>
+
+	<input type="submit" name="search" value="Submit" style="width:150px"/>
+
+	<br>
+	<br>
+
+	<table id="example", class = "display" >
+	{% for object in res %}
+		      
+	    {% if forloop.first %}
+	    <thead>		    
+	    	<tr>
+	       		{% for fieldname in object.keys %}		       
+	       			<th>{{ fieldname }}</th>		    
+	       		{% endfor %}	       	
+	    	</tr>
+		</thead>
+	    {% endif %}
+
+	    	<tr>		    
+	    	  	{% for key, value in object.items %}
+	    	  		<td> {% if key = 'traffic' %} {{ value | filesizeformat }} {% else %} {{ value }} {% endif %}</td>
+	    	  	{% endfor %}
+	    	</tr>
+
+	{% endfor %}
+	</table>
+
+</form>
+
+{% endblock %}
+

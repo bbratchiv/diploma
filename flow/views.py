@@ -1,10 +1,19 @@
 from django.shortcuts import render, render_to_response
-from .models import AcctIn1D, AcctOut1D, AcctIn5M, AcctOut5M, FlowQuerySets
+from .models import AcctIn5M, AcctOut5M, FlowQuerySets
 from chartit import DataPool, Chart
 from django.http import  HttpResponseNotFound, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
-from .forms import ShowDataForm
+from .forms import TrafficReport, CustomReport
 from django.db.models import Sum
+from datetime import datetime, timedelta
+
+hour = datetime.now() - timedelta(hours=1)
+hours3 = datetime.now() - timedelta(hours=3)
+hours6 = datetime.now() - timedelta(hours=6)
+hours12 = datetime.now() - timedelta(hours=12)
+hours24 = datetime.now() - timedelta(days=1)
+week = datetime.now() - timedelta(weeks=1)
+month = datetime.now() - timedelta(days=30)
 
 @login_required
 def home(request):
@@ -12,7 +21,12 @@ def home(request):
 
 @login_required   
 def top_incoming(request, pk):
-    if pk == "1":
+    if pk == "0":
+        top_ip_in      = AcctIn5M.objects.top_ip_in(pk)
+        top_proto_in   = AcctIn5M.objects.top_proto(pk)  
+        top_app_in     = AcctIn5M.objects.top_app_in(pk)
+        top_packets_in = AcctIn5M.objects.top_packets_in(pk)
+    elif pk == "1":
         top_ip_in      = AcctIn5M.objects.top_ip_in(pk)
         top_proto_in   = AcctIn5M.objects.top_proto(pk)  
         top_app_in     = AcctIn5M.objects.top_app_in(pk)
@@ -101,9 +115,15 @@ def top_incoming(request, pk):
         'top_app_in' : top_app_in,
         'top_packets_in' : top_packets_in,
         'charts': [top_ip_in_chart, top_proto_in_chart, top_app_in_chart, top_packets_in_chart]})
+
 @login_required
 def top_outgoing(request, pk):
-    if pk == "1":
+    if pk == "0":
+        top_ip_out      = AcctOut5M.objects.top_ip_out(pk)
+        top_proto_out   = AcctOut5M.objects.top_proto(pk)  
+        top_app_out     = AcctOut5M.objects.top_app_out(pk)
+        top_packets_out = AcctOut5M.objects.top_packets_out(pk)
+    elif pk == "1":
         top_ip_out      = AcctOut5M.objects.top_ip_out(pk)
         top_proto_out   = AcctOut5M.objects.top_proto(pk)  
         top_app_out     = AcctOut5M.objects.top_app_out(pk)
@@ -117,7 +137,7 @@ def top_outgoing(request, pk):
         top_ip_out      = AcctOut5M.objects.top_ip_out(pk)
         top_proto_out   = AcctOut5M.objects.top_proto(pk)  
         top_app_out     = AcctOut5M.objects.top_app_out(pk)
-        top_packets_out = AcctOut5M.objects.top_packets_iout(pk) 
+        top_packets_out = AcctOut5M.objects.top_packets_out(pk) 
     else: 
         return  HttpResponseNotFound('<h1>Page not found</h1>')   
 
@@ -192,10 +212,11 @@ def top_outgoing(request, pk):
                 'top_app_out' : top_app_out,
                 'top_packets_out' : top_packets_out,
                 'charts': [top_ip_out_chart, top_proto_out_chart, top_app_out_chart, top_packets_out_chart]})
+
 @login_required
 def traffic_all(request):
-    traffic_in = AcctIn1D.objects.traffic_in()
-    traffic_out = AcctOut1D.objects.traffic_out()
+    traffic_in = AcctIn5M.objects.traffic_in()
+    traffic_out = AcctOut5M.objects.traffic_out()
     #Step 1: Create a DataPool with the data we want to retrieve.
     traffic_in_ds = DataPool(
         series=[{'options': {
@@ -263,137 +284,134 @@ def traffic_all(request):
                 'charts': [traffic_in_chart, traffic_out_chart]
                 })
 
-def export_data(request):   
+@login_required
+def traffic_report(request):   
     res = None
     form = None
 
     if request.method == 'POST':
-        form = ShowDataForm(request.POST or None)
-        request.session['Submit'] = request.POST
+        form = TrafficReport(request.POST or None)
         # check whether it's valid:
-        if form.is_valid():
-            start_date = form.cleaned_data.get('start_date')
-            end_date = form.cleaned_data.get('end_date')   
-            choose_field = form.cleaned_data.get('choice')
+        if form.is_valid(): 
+            traffic_type = form.cleaned_data.get('traffic_type')
+            address = form.cleaned_data.get('address')
+            time_range = form.cleaned_data.get('time_range')
 
-            if 'Incoming' in choose_field:
-                res = AcctIn1D.objects.values('ip_dst')
+            if 'Incoming' in traffic_type:
+                res = AcctIn5M.objects.values('ip_dst')
             else:
-                res = AcctOut1D.objects.values('ip_src')
+                res = AcctOut5M.objects.values('ip_src')
 
-            if not 'checkbox' in request.POST:
-                address = form.cleaned_data.get('address')
+            if 'address' in request.POST and 'Incoming' in traffic_type :
                 res = res.filter(ip_dst = address)
+            elif 'address' in request.POST and 'Outgoing' in traffic_type :
+                res = res.filter(ip_src = address)
         
-            res = res.filter(stamp_updated__gte=start_date,
-                             stamp_updated__lte=end_date)\
-                            .annotate(traffic=Sum('bytes'))\
+            if 'hour' in time_range:
+                res = res.filter(stamp_updated__gte = hour)
+            elif '3hours' in time_range:
+                res = res.filter(stamp_updated__gte= hours3)
+            elif '6hours' in time_range:
+                res = res.filter(stamp_updated__gte= hours6)
+            elif '12hours' in time_range:
+                res = res.filter(stamp_updated__gte= hours12)
+            elif '24hours' in time_range:
+                res = res.filter(stamp_updated__gte= hours24)
+            elif 'week' in time_range:
+                res = res.filter(stamp_updated__gte= week)
+            if 'month' in time_range:
+                res = res.filter(stamp_updated__gte= month)
+            elif 'custom' in time_range:
+                start_date = form.cleaned_data.get('start_date')
+                end_date = form.cleaned_data.get('end_date')
+                res = res.filter(stamp_updated__gte=start_date,
+                                stamp_updated__lte=end_date)
+
+            res = res.annotate(traffic=Sum('bytes'))\
                             .order_by('-traffic')[:500]
-#    if request.method == 'POST':
-#        form = ShowDataForm(request.POST or None)
-#        request.session['Submit'] = request.POST
-#        # check whether it's valid:
-#        if form.is_valid():
-#            start_date = form.cleaned_data.get('start_date')
-#            end_date = form.cleaned_data.get('end_date')   
-#            
-#
-#            res = AcctIn1D.objects.values('ip_dst')
-#            if not 'checkbox' in request.POST:
-#                address = form.cleaned_data.get('address')
-#                res = res.filter(ip_dst = address)
-#        
-#            res = res.filter(stamp_updated__gte=start_date,
-#                             stamp_updated__lte=end_date)\
-#                            .annotate(traffic=Sum('bytes'))\
-#                            .order_by('-traffic')
     else:
-        form = ShowDataForm()
+        form = TrafficReport()
 
 
-    return render(request, 'flow/export.html',
+    return render(request, 'flow/traffic_report.html',
                     {
                        'form' : form,
                        'res'  : res,
                     })
 
-#def listing(request, queryset):
-#    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-#    page = request.GET.get('page')
-#    paginator = Paginator(res, 25)
-#
-#    try:
-#        queryset = paginator.page(page)
-#    except PageNotAnInteger:
-#        # If page is not an integer, deliver first page.
-#        queryset = paginator.page(1)
-#    except EmptyPage:
-#        # If page is out of range (e.g. 9999), deliver last page of results.
-#        queryset = paginator.page(paginator.num_pages)
-#
-#
-#        return queryset
-#def download_workbook(request, query):
-#
-#    from django.http.response import HttpResponse
-#    queryset = query
-#    columns = (
-#        'ip_dst',
-#        'bytes' )
-#    workbook = queryset_to_workbook(queryset, columns)
-#    response = HttpResponse(content_type='application/vnd.ms-excel')
-#    response['Content-Disposition'] = 'attachment; filename="export.xls"'
-#    workbook.save(response)
-#    return response
+@login_required
+def custom_report(request):   
+    res = None
+    form = None
 
+    if request.method == 'POST':
+        form = CustomReport(request.POST)
+        # check whether it's valid:
+        if form.is_valid():
+            choice_criteria = form.cleaned_data.get('choice_criteria')
+            traffic_type = form.cleaned_data.get('traffic_type')
+            time_range = form.cleaned_data.get('time_range')
 
-#def WriteToExcel(queryset):
-#    from django.http.response import HttpResponse
-#    from io import BytesIO
-#    from xlsxwriter.workbook import Workbook
-#    
-#    output = BytesIO()
-#
-#
-#    # initialises list object
-#    a_list = []
-#
-#    for g in queryset:  
-#        a_list.append({'obj': g})
-#
-#    """sorts the data in the list  by the attribute named 'attribute'
-#    , and sorts it in reverse"""
-#
-#
-#    data = sorted(a_list, key=lambda k: k['obj'].attribute, reverse=True)
-#
-#
-#    # Create a workbook and add a worksheet.
-#    workbook = Workbook(output)
-#    worksheet = workbook.add_worksheet('Report')
-#    
-#    # Add a bold format to use to highlight cells.
-#    bold = workbook.add_format({'bold': True})
-#    
-#    # Write some data headers.
-#    worksheet.write('A1', 'Destination IP', bold)
-#    worksheet.write('B1', 'Traffic', bold)
-#    
-#    # Iterate over the data and write it out row by row.
-#    for i, row in enumerate(data):
-#    
-#        """for each object in the date list, attribute1 & attribute2
-#        are written to the first & second column respectively,
-#        for the relevant row. The 3rd arg is a failure message if
-#        there is no data available"""
-#    
-#        worksheet.write(i, 0, getattr(row['obj'], 'attribute1', 'attribute1 not available'))
-#        worksheet.write(i, 1, getattr(row['obj'], 'attribute2', 'attribute2 not available'))
-#    
-#    # closes the workbook
-#    workbook.close()
-#    response = HttpResponse(output.read(),content_type='application/vnd.ms-excel')
-#    response['Content-Disposition'] = 'attachment; filename=Report.xlsx'
-#
-##   response.write(xls_data)
-#    return response
+            if "Incoming" in traffic_type:
+                res = AcctIn5M.objects.values('ip_dst', 'dst_port', 'ip_proto', 'bytes', 'stamp_updated')
+            else: 
+                res = AcctOut5M.objects.values('ip_src', 'src_port', 'ip_proto', 'bytes', 'stamp_updated')
+
+            if 'source_ip' in choice_criteria:
+                src_addr = form.cleaned_data.get('src_addr')
+                res = res.filter(ip_dst = src_addr)
+            elif 'dest_ip' in choice_criteria:
+                dst_addr = form.cleaned_data.get('dst_addr')
+                res = res.filter(ip_src = dst_addr)
+            
+            if choice_criteria == 'port1' and 'Incoming' in traffic_type:
+                port = form.cleaned_data.get('port')
+                res = res.filter(dst_port = port)
+            elif choice_criteria == 'port1' and 'Outgoing' in traffic_type:
+                port = form.cleaned_data.get('port')
+                res = res.filter(src_port = port)
+            
+            if 'port_range' in choice_criteria and 'Incoming' in traffic_type:
+                port_range1 = form.cleaned_data.get('pFrom')
+                port_range2 = form.cleaned_data.get('pTo')
+                res = res.filter(dst_port__gte = port_range1,
+                                 dst_port__lte = port_range2)
+            elif 'port_range' in choice_criteria and "Outgoing" in traffic_type:
+                port_range1 = form.cleaned_data.get('pFrom')
+                port_range2 = form.cleaned_data.get('pTo')
+                res = res.filter(src_port__gte = port_range1,
+                                 src_port__lte = port_range2)                
+            
+            if choice_criteria == 'protocol' :
+                proto = form.cleaned_data.get('proto')
+                res = res.filter(ip_proto = proto)
+            
+            if 'hour' in time_range:
+                res = res.filter(stamp_updated__gte = hour)
+            elif '3hours' in time_range:
+                res = res.filter(stamp_updated__gte= hours3)
+            elif '6hours' in time_range:
+                res = res.filter(stamp_updated__gte= hours6)
+            elif '12hours' in time_range:
+                res = res.filter(stamp_updated__gte= hours12)
+            elif '24hours' in time_range:
+                res = res.filter(stamp_updated__gte= hours24)
+            elif 'week' in time_range:
+                res = res.filter(stamp_updated__gte= week)
+            if 'month' in time_range:
+                res = res.filter(stamp_updated__gte= month)
+            elif 'custom' in time_range:
+                start_date = form.cleaned_data.get('start_date')
+                end_date = form.cleaned_data.get('end_date')
+                res = res.filter(stamp_updated__gte=start_date,
+                                stamp_updated__lte=end_date)
+
+            
+    else:
+        form = CustomReport()
+
+    return render (request, 'flow/custom_report.html',
+                {
+                    'form1' : form,
+                    'res1' : res,
+                })

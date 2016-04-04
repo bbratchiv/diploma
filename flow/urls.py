@@ -12,6 +12,7 @@ urlpatterns = [
 	url(r'^traffic/$', views.traffic_all),
 	url(r'^accounts/login/$', auth_views.login),
 	url(r'^accounts/logout/$', auth_views.logout, {'next_page': '/'}),
-	url(r'^export/$', views.export_data),
-#	url(r'^export/download/$', views.get_xls_data)
+	url(r'^traffic_report/$', views.traffic_report),
+	url(r'^custom_report/$', views.custom_report)
+
 ]

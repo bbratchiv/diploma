@@ -23,7 +23,9 @@ class FlowQuerySets(models.QuerySet):
     
     def top_ip_in(self, pk):
         queryset = self.values('ip_dst', 'ip_proto')
-        if pk == "1":
+        if pk =="0":
+            pass
+        elif pk == "1":
             queryset = queryset.filter(stamp_updated__gt= hour)
         elif pk ==  "6":
             queryset = queryset.filter(stamp_updated__gt=_6hours)
@@ -34,7 +36,9 @@ class FlowQuerySets(models.QuerySet):
 
     def top_ip_out(self, pk):
         queryset = self.values('ip_src', 'ip_proto')
-        if pk == "1":
+        if pk =="0":
+            pass
+        elif pk == "1":
             queryset = queryset.filter(stamp_updated__gt=hour)
         elif pk == "6":
             queryset = queryset.filter(stamp_updated__gt=_6hours)
@@ -45,7 +49,9 @@ class FlowQuerySets(models.QuerySet):
 
     def top_proto(self, pk): 
         queryset = self.values('ip_proto')
-        if pk == "1":
+        if pk =="0":
+            pass
+        elif pk == "1":
             queryset = queryset.filter(stamp_updated__gt=hour)
         elif pk == "6":
             queryset = queryset.filter(stamp_updated__gt=_6hours)
@@ -56,7 +62,9 @@ class FlowQuerySets(models.QuerySet):
 
     def top_packets_in(self, pk): 
         queryset = self.values('ip_dst')
-        if pk =="1":
+        if pk =="0":
+            pass
+        elif pk =="1":
             queryset = queryset.filter(stamp_updated__gt=hour)
         elif pk =="6":
             queryset = queryset.filter(stamp_updated__gt=_6hours)
@@ -68,7 +76,9 @@ class FlowQuerySets(models.QuerySet):
 
     def top_packets_out(self, pk): 
         queryset = self.values('ip_src')
-        if pk== "1":
+        if pk =="0":
+            pass
+        elif pk== "1":
             queryset = queryset.filter(stamp_updated__gt=hour)
         elif pk== "6":
             queryset = queryset.filter(stamp_updated__gt=_6hours)
@@ -81,7 +91,9 @@ class FlowQuerySets(models.QuerySet):
     def top_app_in(self, pk):
         import socket
         queryset = self.values('dst_port')
-        if pk== "1":
+        if pk =="0":
+            pass
+        elif pk== "1":
             queryset = queryset.filter(stamp_updated__gt=hour)
         elif pk== "6":
             queryset = queryset.filter(stamp_updated__gt=_6hours)
@@ -99,7 +111,9 @@ class FlowQuerySets(models.QuerySet):
     def top_app_out(self, pk):
         import socket
         queryset = self.values('src_port')
-        if pk =="1":
+        if pk =="0":
+            pass
+        elif pk =="1":
             queryset = queryset.filter(stamp_updated__gt=hour)
         elif pk =="6":
             queryset = queryset.filter(stamp_updated__gt=_6hours)
@@ -122,34 +136,6 @@ class FlowQuerySets(models.QuerySet):
         return self.values('stamp_updated').annotate(traffic=Sum('bytes'))\
                         .order_by('-stamp_updated')
 
-class AcctIn1D(models.Model):
-    id = models.BigIntegerField(primary_key=True)
-    ip_dst = models.CharField(max_length=15)
-    packets = models.IntegerField()
-    bytes = models.BigIntegerField()
-    stamp_inserted = models.DateTimeField()
-    stamp_updated = models.DateTimeField(blank=True, null=True)
-    
-    objects = FlowQuerySets.as_manager()
-
-    class Meta:
-        managed = False
-        db_table = 'acct_in_1d'
-
-
-class AcctOut1D(models.Model):
-    id = models.BigIntegerField(primary_key=True)
-    ip_src = models.CharField(max_length=15)
-    packets = models.IntegerField()
-    bytes = models.BigIntegerField()
-    stamp_inserted = models.DateTimeField()
-    stamp_updated = models.DateTimeField(blank=True, null=True)
-    
-    objects = FlowQuerySets.as_manager()
-
-    class Meta:
-        managed = False
-        db_table = 'acct_out_1d'
 
 class AcctIn5M(models.Model):
     id = models.BigIntegerField(primary_key=True)
