@@ -10,9 +10,15 @@ from django.utils import timezone
 from django.db import models
 from django.db.models import Sum
 from datetime import datetime, timedelta
+#from django.db.models.base import ModelBase
+#from django.core import validators
+#from django.forms import ModelForm, CharField
+#from django import forms
+#from django.core.cache import cache
+#from django.contrib import admin
+#from django.apps import apps
 
-#>>> half_hour = datetime.now() - timedelta(hours=0.5)
-#>>> AcctIn5M.objects.values('ip_dst', 'ip_proto').filter(stamp_updated__gt=half_hour).annotate(traffic=Sum('bytes')).order_by('-traffic')[:10]
+
 
 hour = datetime.now() - timedelta(hours=1)
 _6hours = datetime.now() - timedelta(hours=6)
@@ -129,15 +135,13 @@ class FlowQuerySets(models.QuerySet):
         return queryset       
 
 
-    def traffic_in(self):
-        return self.values('stamp_updated').annotate(traffic=Sum('bytes'))\
-                        .order_by('-stamp_updated')
-    def traffic_out(self):
-        return self.values('stamp_updated').annotate(traffic=Sum('bytes'))\
-                        .order_by('-stamp_updated')
+    def traffic(self):
+        return self.values('bytes','stamp_updated').order_by('-stamp_updated')
+#    def traffic_out(self):
+#        return self.values('stamp_updated').annotate(traffic_out=Sum('bytes'))\
+#                        .order_by('-stamp_updated')
 
-
-class AcctIn5M(models.Model):
+class Device1_In(models.Model):
     id = models.BigIntegerField(primary_key=True)
     ip_dst = models.CharField(max_length=15)
     dst_port = models.IntegerField()
@@ -151,10 +155,10 @@ class AcctIn5M(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'acct_in_5m'
+        db_table = 'device1_in'
 
 
-class AcctOut5M(models.Model):
+class Device1_Out(models.Model):
     id = models.BigIntegerField(primary_key=True)
     ip_src = models.CharField(max_length=15)
     src_port = models.IntegerField()
@@ -168,5 +172,54 @@ class AcctOut5M(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'acct_out_5m'
+        db_table = 'device1_out'
 
+class Device2_In(models.Model):
+    id = models.BigIntegerField(primary_key=True)
+    ip_dst = models.CharField(max_length=15)
+    dst_port = models.IntegerField()
+    ip_proto = models.CharField(max_length=6)
+    packets = models.IntegerField()
+    bytes = models.BigIntegerField()
+    stamp_inserted = models.DateTimeField()
+    stamp_updated = models.DateTimeField(blank=True, null=True)
+    
+    objects = FlowQuerySets.as_manager()
+
+    class Meta:
+        managed = False
+        db_table = 'device2_in'
+
+
+class Device2_Out(models.Model):
+    id = models.BigIntegerField(primary_key=True)
+    ip_src = models.CharField(max_length=15)
+    src_port = models.IntegerField()
+    ip_proto = models.CharField(max_length=6)
+    packets = models.IntegerField()
+    bytes = models.BigIntegerField()
+    stamp_inserted = models.DateTimeField()
+    stamp_updated = models.DateTimeField(blank=True, null=True)
+    
+    objects = FlowQuerySets.as_manager()
+
+    class Meta:
+        managed = False
+        db_table = 'device2_out'
+
+
+class Devices(models.Model):
+    id = models.AutoField(primary_key=True)
+    device_name = models.CharField(max_length=20)
+    device_ip = models.CharField(max_length=15)
+
+    class Meta:
+        db_table = 'devices'
+
+#class AddDeviceForm(ModelForm):
+#    device_name = forms.CharField(validators=[validators.RegexValidator(regex ='^[A-Za-z]+$', message = 'Must Contain One Word')], 
+#                                    widget=forms.TextInput(attrs={'placeholder': 'Name'})),
+#    device_ip =  forms.CharField(validators=[validators.validate_ipv4_address], widget=forms.TextInput(attrs={'placeholder': 'IP Address'}))
+#    class Meta:
+#        model = Devices
+#        fields = ['device_name', 'device_ip']

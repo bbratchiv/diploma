@@ -5,6 +5,8 @@ from django.utils import timezone
 from django.forms.extras.widgets import SelectDateWidget
 from django.forms.widgets import SplitDateTimeWidget
 from django.core import validators
+from .models import Devices
+from django.forms.models import ModelChoiceField
 
 TRAFFIC_CHOICES = (
 	('Incoming', 'Incoming'),
@@ -72,3 +74,25 @@ class CustomReport (forms.Form):
 									{'onchange' : 'showHideTime();'}))
 	start_date		= forms.DateField(widget=SelectDateWidget)
 	end_date   		= forms.DateField(widget=SelectDateWidget, initial=timezone.now())
+
+
+	def clean(self):
+		cleaned_data = super(CustomReport, self).clean()
+		dst_addr = cleaned_data.get("dst_addr")
+		src_addr = cleaned_data.get("src_addr")
+		traffic_type = cleaned_data.get('traffic_type')
+		if dst_addr and traffic_type == 'Outgoing':
+			self.add_error('traffic_type', '(Outgoing traffic has only source address)')
+		elif src_addr and traffic_type == "Incoming":
+			self.add_error('traffic_type', '(Incoming traffic has only destination address)')
+
+class SelectDeviceForm(forms.Form):  
+	device_name = forms.ChoiceField()
+
+	def __init__(self, *args, **kwargs):
+         super(forms.Form, self).__init__(*args, **kwargs)
+         self.fields['device_name'].choices = [(l.device_name, l.device_name) for l in Devices.objects.all()]
+
+#class AddDeviceForm(forms.Form):
+#	device_name_field = forms.CharField(validators=[validators.RegexValidator(r'^[A-Za-z]+$')])
+#	ip_address = forms.CharField(validators=[validators.validate_ipv4_address])

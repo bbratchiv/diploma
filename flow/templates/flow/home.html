@@ -1,0 +1,28 @@
+{% extends 'flow/base.html' %}
+
+{% block content %}
+
+
+<form class = "exportTable", action="."  method="POST">	
+	<h2> Choose device to work with </h2>
+	{% csrf_token%} 
+
+	<label for="devices">Devices:</label>
+		
+		{% for element in selectDevice.device_name %} {{element}} {% endfor %}
+
+	<input type="submit" , value="Select Device", style="width:170px", onclick="return alert('Device activated')"/>
+</form>
+<!--
+<form class = "exportTable", action="."  method="POST">
+		<h2> OR </h2>
+	<p><label> Add Device: </label></p>
+		{% csrf_token%} 
+	{{ addDevice.device_name }} {{ addDevice.device_ip }} 
+
+	<input type="submit" , value="Add Device", style="width:170px", onclick="return alert('Device added')"/>
+
+
+</form>
+-->
+{% endblock %}

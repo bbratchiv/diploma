@@ -59,7 +59,7 @@ $(document).ready(function() {
 
 <form class = "exportTable", action="."  method="POST">	
 	<h2> Traffic Report </h2>
-	{{ form1.non_field_errors }}
+	{{ form.non_field_errors }}
 	{% csrf_token%} 
 	<p><label>Choose The Type Of Traffic:</label>
 		{{form.traffic_type }}</p>
@@ -96,7 +96,7 @@ $(document).ready(function() {
 	    <thead>		    
 	    	<tr>
 	       		{% for fieldname in object.keys %}		       
-	       			<th>{{ fieldname }}</th>		    
+	       			<th>{{ fieldname| title }}</th>		    
 	       		{% endfor %}	       	
 	    	</tr>
 		</thead>

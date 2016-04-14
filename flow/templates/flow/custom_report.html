@@ -83,19 +83,9 @@ $(document).ready(function() {
 <!---->
 	{{ form1.src_addr }}
 
-		{% if form1.src_addr.errors %}
-			{% for error in form1.src_addr.errors %}
-				{{ error|escape }}
-			{% endfor %}
-		{% endif %}
 <!---->
 	{{ form1.dst_addr }}
 
-		{% if form1.dst_addr.errors %}
-			{% for error in form1.dst_addr.errors %}
-				{{ error|escape }}
-			{% endfor %}
-		{% endif %}
 <!---->
 	 {{ form1.port }} 
 <!---->
@@ -105,6 +95,12 @@ $(document).ready(function() {
 <!---->
 	<label> Traffic </label>
 		{{form1.traffic_type }} 
+
+		{% if form1.traffic_type.errors %}
+			{% for error in form1.traffic_type.errors %}
+				{{ error|escape }}
+			{% endfor %}
+		{% endif %}
 <!---->
 	<p><label> Time Period: {{ form1.time_range }} </label> </p>
 <!---->
@@ -128,7 +124,7 @@ $(document).ready(function() {
 	    <thead>		    
 	    	<tr>
 	       		{% for fieldname in object.keys %}		       
-	       			<th>{{ fieldname }}</th>		    
+	       			<th>{{ fieldname | title }}</th>		    
 	       		{% endfor %}	       	
 	    	</tr>
 		</thead>
@@ -136,8 +132,7 @@ $(document).ready(function() {
 
 	    	<tr>		    
 	    	  	{% for key, value in object.items %}
-	    	  		<td> {% if key = 'bytes' %} {{ value | filesizeformat }}
-	    	  		{% else %} {{ value }} {% endif %}</td>
+	    	  		<td> {% if key = 'bytes' %} {{ value | filesizeformat }} {% else %} {{ value }} {% endif %}</td>
 	    	  	{% endfor %}
 	    	</tr>
 

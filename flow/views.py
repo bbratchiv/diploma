@@ -1,11 +1,15 @@
 from django.shortcuts import render, render_to_response
-from .models import AcctIn5M, AcctOut5M, FlowQuerySets
+from .models import  FlowQuerySets, Devices, Device1_In, Device1_Out, Device2_In, Device2_Out
 from chartit import DataPool, Chart
-from django.http import  HttpResponseNotFound, HttpResponseRedirect
+from django.http import  HttpResponseNotFound, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
-from .forms import TrafficReport, CustomReport
+from .forms import TrafficReport, CustomReport, SelectDeviceForm 
 from django.db.models import Sum
 from datetime import datetime, timedelta
+from django.apps import apps
+from django.db import models
+
+
 
 hour = datetime.now() - timedelta(hours=1)
 hours3 = datetime.now() - timedelta(hours=3)
@@ -14,101 +18,138 @@ hours12 = datetime.now() - timedelta(hours=12)
 hours24 = datetime.now() - timedelta(days=1)
 week = datetime.now() - timedelta(weeks=1)
 month = datetime.now() - timedelta(days=30)
+ModelIn = None
+ModelOut = None
 
 @login_required
 def home(request):
-    return render(request, 'flow/base.html')
+
+    form1 = SelectDeviceForm()
+#    form2 = AddDeviceForm()
+    global ModelIn
+    global ModelOut
+
+    if request.method == 'POST' and 'Select Device':
+        form1 = SelectDeviceForm(request.POST)
+        if form1.is_valid():
+            request.session['devices'] = form1.cleaned_data.get('device_name') 
+            if request.session['devices'] == 'mikrotik':
+                ModelIn = Device1_In
+                ModelOut = Device1_Out
+            elif request.session['devices'] == 'cisco':
+                ModelIn = Device2_In
+                ModelOut = Device2_Out
+
+#    elif request.method == 'POST' and 'Add Device': 
+#        form2 = AddDeviceForm(request.POST)
+#        # check whether it's valid:
+#        if form2.is_valid(): 
+#            device = form2.save(commit = False)
+#             # commit=False tells Django that "Don't send this to database yet.  
+#            device.device_name = request.device_name
+#            device.device_ip = request.device_ip
+#            device.save()
+
+    return render(request, 'flow/home.html', {'selectDevice' : form1,}) #'addDevice' : form2 })
 
 @login_required   
 def top_incoming(request, pk):
-    if pk == "0":
-        top_ip_in      = AcctIn5M.objects.top_ip_in(pk)
-        top_proto_in   = AcctIn5M.objects.top_proto(pk)  
-        top_app_in     = AcctIn5M.objects.top_app_in(pk)
-        top_packets_in = AcctIn5M.objects.top_packets_in(pk)
-    elif pk == "1":
-        top_ip_in      = AcctIn5M.objects.top_ip_in(pk)
-        top_proto_in   = AcctIn5M.objects.top_proto(pk)  
-        top_app_in     = AcctIn5M.objects.top_app_in(pk)
-        top_packets_in = AcctIn5M.objects.top_packets_in(pk)
-    elif pk == "6":
-        top_ip_in      = AcctIn5M.objects.top_ip_in(pk)
-        top_proto_in   = AcctIn5M.objects.top_proto(pk)  
-        top_app_in     = AcctIn5M.objects.top_app_in(pk)
-        top_packets_in = AcctIn5M.objects.top_packets_in(pk)     
-    elif pk == "24":
-        top_ip_in      = AcctIn5M.objects.top_ip_in(pk)
-        top_proto_in   = AcctIn5M.objects.top_proto(pk)  
-        top_app_in     = AcctIn5M.objects.top_app_in(pk)
-        top_packets_in = AcctIn5M.objects.top_packets_in(pk) 
-    else: 
-        return   HttpResponseNotFound('<h1>Page not found</h1>')
+    if 'devices' not in request.session:
+        return HttpResponse("<p>Please select device at <a href='/home/'>start page</a></p>")
 
-    #Step 1: Create a DataPool with the data we want to retrieve.
-    top_ip_in_ds = DataPool(series=[{'options': {
-    		'source': top_ip_in,
-    		},
-            'terms': ['traffic', 'ip_dst' ]}])
+    try:
+        if pk == "0":
+            top_ip_in      = ModelIn.objects.top_ip_in(pk)
+            top_proto_in   = ModelIn.objects.top_proto(pk)  
+            top_app_in     = ModelIn.objects.top_app_in(pk)
+            top_packets_in = ModelIn.objects.top_packets_in(pk)
+        elif pk == "1":
+            top_ip_in      = ModelIn.objects.top_ip_in(pk)
+            top_proto_in   = ModelIn.objects.top_proto(pk)  
+            top_app_in     = ModelIn.objects.top_app_in(pk)
+            top_packets_in = ModelIn.objects.top_packets_in(pk)
+        elif pk == "6":
+            top_ip_in      = ModelIn.objects.top_ip_in(pk)
+            top_proto_in   = ModelIn.objects.top_proto(pk)  
+            top_app_in     = ModelIn.objects.top_app_in(pk)
+            top_packets_in = ModelIn.objects.top_packets_in(pk)     
+        elif pk == "24":
+            top_ip_in      = ModelIn.objects.top_ip_in(pk)
+            top_proto_in   = ModelIn.objects.top_proto(pk)  
+            top_app_in     = ModelIn.objects.top_app_in(pk)
+            top_packets_in = ModelIn.objects.top_packets_in(pk) 
+        else: 
+            return   HttpResponseNotFound('<h1>Page not found</h1>')
 
-    top_proto_in_ds = DataPool(series=[{'options': {
-        'source': top_proto_in,
-        },
-        'terms': ['traffic', 'ip_proto' ]}])
 
-    top_app_in_ds = DataPool(series=[{'options': {
-        'source': top_app_in,
-        },
-        'terms': ['traffic', 'dst_port' ]}])
-
-    top_packets_in_ds = DataPool(series=[{'options': {
-        'source': top_packets_in,
-        },
-        'terms': ['sum_packets', 'ip_dst' ]}])
-    #Step 2: Create the Chart object
-    top_ip_in_chart = Chart(
-            datasource = top_ip_in_ds,
-            series_options =[{'options':{'type': 'pie',
-                'allowPointSelect' : True, 'cursor' : 'pointer',
-                'showInLegend': True,
-                'dataLabels':{'enabled': False}},
-                'terms':{'ip_dst': ['traffic']}}],
-            chart_options = {
-                'tooltip': {
-                    'pointFormat' : '{series.name} : <b>{point.percentage:.1f}%</b>'},
-                'title': {
-                   'text': 'Top 10 Incoming Destinations'}})
-    top_proto_in_chart = Chart(
-            datasource = top_proto_in_ds,
-            series_options =[{'options':{'type': 'pie',
-                'allowPointSelect' : True, 'cursor' : 'pointer',
-                'showInLegend': True, 'dataLabels':{'enabled': False}},
-                'terms':{'ip_proto': ['traffic']}}],
-            chart_options = {
-                'tooltip': {
-                    'pointFormat' : '{series.name} : <b>{point.percentage:.1f}%</b>'},
-                'title': {
-                   'text': 'Top 10 Incoming IP Protocols'}})
-    top_app_in_chart = Chart(
-            datasource = top_app_in_ds,
-            series_options =[{'options':{'type': 'pie',
-                'allowPointSelect' : True, 'cursor' : 'pointer',
-                'showInLegend': True, 'dataLabels':{'enabled': False}},
-                'terms':{'dst_port': ['traffic']}}],
-            chart_options ={
+        #Step 1: Create a DataPool with the data we want to retrieve.
+        top_ip_in_ds = DataPool(series=[{'options': {
+        		'source': top_ip_in,
+        		},
+                'terms': ['traffic', 'ip_dst' ]}])
+    
+        top_proto_in_ds = DataPool(series=[{'options': {
+            'source': top_proto_in,
+            },
+            'terms': ['traffic', 'ip_proto' ]}])
+    
+        top_app_in_ds = DataPool(series=[{'options': {
+            'source': top_app_in,
+            },
+            'terms': ['traffic', 'dst_port' ]}])
+    
+        top_packets_in_ds = DataPool(series=[{'options': {
+            'source': top_packets_in,
+            },
+            'terms': ['sum_packets', 'ip_dst' ]}])
+        #Step 2: Create the Chart object
+        top_ip_in_chart = Chart(
+                datasource = top_ip_in_ds,
+                series_options =[{'options':{'type': 'pie',
+                    'allowPointSelect' : True, 'cursor' : 'pointer',
+                    'showInLegend': True,
+                    'dataLabels':{'enabled': False}},
+                    'terms':{'ip_dst': ['traffic']}}],
+                chart_options = {
                     'tooltip': {
                         'pointFormat' : '{series.name} : <b>{point.percentage:.1f}%</b>'},
                     'title': {
-                        'text': 'Top 10 Incoming Applications'}})
-
-    top_packets_in_chart = Chart(
-            datasource = top_packets_in_ds,
-            series_options =[{'options':{'type': 'pie',
-                'allowPointSelect' : True, 'cursor' : 'pointer',
-                'showInLegend': True, 'dataLabels':{'enabled': False}},
-                'terms':{'ip_dst': ['sum_packets']}}],
-            chart_options =
-              {'title': {
-                   'text': 'Top 10 Incoming Packets'}})
+                       'text': 'Top 10 Incoming Destinations'}})
+        top_proto_in_chart = Chart(
+                datasource = top_proto_in_ds,
+                series_options =[{'options':{'type': 'pie',
+                    'allowPointSelect' : True, 'cursor' : 'pointer',
+                    'showInLegend': True, 'dataLabels':{'enabled': False}},
+                    'terms':{'ip_proto': ['traffic']}}],
+                chart_options = {
+                    'tooltip': {
+                        'pointFormat' : '{series.name} : <b>{point.percentage:.1f}%</b>'},
+                    'title': {
+                       'text': 'Top 10 Incoming IP Protocols'}})
+        top_app_in_chart = Chart(
+                datasource = top_app_in_ds,
+                series_options =[{'options':{'type': 'pie',
+                    'allowPointSelect' : True, 'cursor' : 'pointer',
+                    'showInLegend': True, 'dataLabels':{'enabled': False}},
+                    'terms':{'dst_port': ['traffic']}}],
+                chart_options ={
+                        'tooltip': {
+                            'pointFormat' : '{series.name} : <b>{point.percentage:.1f}%</b>'},
+                        'title': {
+                            'text': 'Top 10 Incoming Applications'}})
+    
+        top_packets_in_chart = Chart(
+                datasource = top_packets_in_ds,
+                series_options =[{'options':{'type': 'pie',
+                    'allowPointSelect' : True, 'cursor' : 'pointer',
+                    'showInLegend': True, 'dataLabels':{'enabled': False}},
+                    'terms':{'ip_dst': ['sum_packets']}}],
+                chart_options =
+                  {'title': {
+                       'text': 'Top 10 Incoming Packets'}})
+    except Exception as e: 
+        print (e)
+        #return HttpResponse("<p>Please select device at <a href='/home/'>start page</a></p>")
     return render (request, 'flow/top_incoming.html', {
         'top_ip_in': top_ip_in, 
         'top_proto_in': top_proto_in,
@@ -118,94 +159,100 @@ def top_incoming(request, pk):
 
 @login_required
 def top_outgoing(request, pk):
-    if pk == "0":
-        top_ip_out      = AcctOut5M.objects.top_ip_out(pk)
-        top_proto_out   = AcctOut5M.objects.top_proto(pk)  
-        top_app_out     = AcctOut5M.objects.top_app_out(pk)
-        top_packets_out = AcctOut5M.objects.top_packets_out(pk)
-    elif pk == "1":
-        top_ip_out      = AcctOut5M.objects.top_ip_out(pk)
-        top_proto_out   = AcctOut5M.objects.top_proto(pk)  
-        top_app_out     = AcctOut5M.objects.top_app_out(pk)
-        top_packets_out = AcctOut5M.objects.top_packets_out(pk)
-    elif pk == "6":
-        top_ip_out      = AcctOut5M.objects.top_ip_out(pk)
-        top_proto_out   = AcctOut5M.objects.top_proto(pk)  
-        top_app_out     = AcctOut5M.objects.top_app_out(pk)
-        top_packets_out = AcctOut5M.objects.top_packets_out(pk)     
-    elif pk == "24":
-        top_ip_out      = AcctOut5M.objects.top_ip_out(pk)
-        top_proto_out   = AcctOut5M.objects.top_proto(pk)  
-        top_app_out     = AcctOut5M.objects.top_app_out(pk)
-        top_packets_out = AcctOut5M.objects.top_packets_out(pk) 
-    else: 
-        return  HttpResponseNotFound('<h1>Page not found</h1>')   
+    if 'devices' not in request.session:
+        return HttpResponse("<p>Please select device at <a href='/home/'>start page</a></p>")
+    try:
+        if pk == "0":
+            top_ip_out      = ModelOut.objects.top_ip_out(pk)
+            top_proto_out   = ModelOut.objects.top_proto(pk)  
+            top_app_out     = ModelOut.objects.top_app_out(pk)
+            top_packets_out = ModelOut.objects.top_packets_out(pk)
+        elif pk == "1":
+            top_ip_out      = ModelOut.objects.top_ip_out(pk)
+            top_proto_out   = ModelOut.objects.top_proto(pk)  
+            top_app_out     = ModelOut.objects.top_app_out(pk)
+            top_packets_out = ModelOut.objects.top_packets_out(pk)
+        elif pk == "6":
+            top_ip_out      = ModelOut.objects.top_ip_out(pk)
+            top_proto_out   = ModelOut.objects.top_proto(pk)  
+            top_app_out     = ModelOut.objects.top_app_out(pk)
+            top_packets_out = ModelOut.objects.top_packets_out(pk)     
+        elif pk == "24":
+            top_ip_out      = ModelOut.objects.top_ip_out(pk)
+            top_proto_out   = ModelOut.objects.top_proto(pk)  
+            top_app_out     = ModelOut.objects.top_app_out(pk)
+            top_packets_out = ModelOut.objects.top_packets_out(pk) 
+        else: 
+            return  HttpResponseNotFound('<h1>Page not found</h1>')   
 
-    #Step 1: Create a DataPool with the data we want to retrieve.
-    top_ip_out_ds = DataPool(series=[{'options': {
-            'source': top_ip_out,
+        #Step 1: Create a DataPool with the data we want to retrieve.
+        top_ip_out_ds = DataPool(series=[{'options': {
+                'source': top_ip_out,
+                },
+                'terms': ['traffic', 'ip_src' ]}])
+        top_proto_out_ds = DataPool(series=[{'options': {
+            'source': top_proto_out,
             },
-            'terms': ['traffic', 'ip_src' ]}])
-    top_proto_out_ds = DataPool(series=[{'options': {
-        'source': top_proto_out,
-        },
-        'terms': ['traffic', 'ip_proto' ]}])
-
-    top_app_out_ds = DataPool(series=[{'options': {
-        'source': top_app_out,
-        },
-        'terms': ['traffic', 'src_port' ]}])
-
-    top_packets_out_ds = DataPool(series=[{'options': {
-        'source': top_packets_out,
-        },
-        'terms': ['sum_packets', 'ip_src' ]}])
-     #Step 2: Create the Chart object
-    top_ip_out_chart = Chart(
-            datasource = top_ip_out_ds,
-            series_options =[{'options':{'type': 'pie',
-                'allowPointSelect' : True, 'cursor' : 'pointer',
-                'showInLegend': True,
-                'dataLabels':{'enabled': False}},
-                'terms':{'ip_src': ['traffic']}}],
-            chart_options = {
-                'tooltip': {
-                    'pointFormat' : '{series.name} : <b>{point.percentage:.1f}%</b>'},
-                'title': {
-                   'text': 'Top 10 Source Locations Out'}})
-
-    top_proto_out_chart = Chart(
-            datasource = top_proto_out_ds,
-            series_options =[{'options':{'type': 'pie',
-                'allowPointSelect' : True, 'cursor' : 'pointer',
-                'showInLegend': True, 'dataLabels':{'enabled': False}},
-                'terms':{'ip_proto': ['traffic']}}],
-            chart_options = {
-                'tooltip': {
-                    'pointFormat' : '{series.name} : <b>{point.percentage:.1f}%</b>'},
-                'title': {
-                   'text': 'Top 10 Outgoing IP Protocols'}})
-    top_app_out_chart = Chart(
-            datasource = top_app_out_ds,
-            series_options =[{'options':{'type': 'pie',
-                'allowPointSelect' : True, 'cursor' : 'pointer',
-                'showInLegend': True, 'dataLabels':{'enabled': False}},
-                'terms':{'src_port': ['traffic']}}],
-            chart_options ={
+            'terms': ['traffic', 'ip_proto' ]}])
+    
+        top_app_out_ds = DataPool(series=[{'options': {
+            'source': top_app_out,
+            },
+            'terms': ['traffic', 'src_port' ]}])
+    
+        top_packets_out_ds = DataPool(series=[{'options': {
+            'source': top_packets_out,
+            },
+            'terms': ['sum_packets', 'ip_src' ]}])
+         #Step 2: Create the Chart object
+        top_ip_out_chart = Chart(
+                datasource = top_ip_out_ds,
+                series_options =[{'options':{'type': 'pie',
+                    'allowPointSelect' : True, 'cursor' : 'pointer',
+                    'showInLegend': True,
+                    'dataLabels':{'enabled': False}},
+                    'terms':{'ip_src': ['traffic']}}],
+                chart_options = {
                     'tooltip': {
                         'pointFormat' : '{series.name} : <b>{point.percentage:.1f}%</b>'},
                     'title': {
-                        'text': 'Top 10 Outgoing Applications'}})
-
-    top_packets_out_chart = Chart(
-            datasource = top_packets_out_ds,
-            series_options =[{'options':{'type': 'pie',
-                'allowPointSelect' : True, 'cursor' : 'pointer',
-                'showInLegend': True, 'dataLabels':{'enabled': False}},
-                'terms':{'ip_src': ['sum_packets']}}],
-            chart_options =
-              {'title': {
-                   'text': 'Top 10 Incoming Packets'}})
+                       'text': 'Top 10 Source Locations Out'}})
+    
+        top_proto_out_chart = Chart(
+                datasource = top_proto_out_ds,
+                series_options =[{'options':{'type': 'pie',
+                    'allowPointSelect' : True, 'cursor' : 'pointer',
+                    'showInLegend': True, 'dataLabels':{'enabled': False}},
+                    'terms':{'ip_proto': ['traffic']}}],
+                chart_options = {
+                    'tooltip': {
+                        'pointFormat' : '{series.name} : <b>{point.percentage:.1f}%</b>'},
+                    'title': {
+                       'text': 'Top 10 Outgoing IP Protocols'}})
+        top_app_out_chart = Chart(
+                datasource = top_app_out_ds,
+                series_options =[{'options':{'type': 'pie',
+                    'allowPointSelect' : True, 'cursor' : 'pointer',
+                    'showInLegend': True, 'dataLabels':{'enabled': False}},
+                    'terms':{'src_port': ['traffic']}}],
+                chart_options ={
+                        'tooltip': {
+                            'pointFormat' : '{series.name} : <b>{point.percentage:.1f}%</b>'},
+                        'title': {
+                            'text': 'Top 10 Outgoing Applications'}})
+    
+        top_packets_out_chart = Chart(
+                datasource = top_packets_out_ds,
+                series_options =[{'options':{'type': 'pie',
+                    'allowPointSelect' : True, 'cursor' : 'pointer',
+                    'showInLegend': True, 'dataLabels':{'enabled': False}},
+                    'terms':{'ip_src': ['sum_packets']}}],
+                chart_options =
+                  {'title': {
+                       'text': 'Top 10 Incoming Packets'}})
+    except Exception as e: 
+        print (e)
+        #return HttpResponse("<p>Please select device at <a href='/home/'>start page</a></p>")
     return render (request, 'flow/top_outgoing.html', {
                 'top_ip_out': top_ip_out, 
                 'top_proto_out': top_proto_out,
@@ -215,14 +262,21 @@ def top_outgoing(request, pk):
 
 @login_required
 def traffic_all(request):
-    traffic_in = AcctIn5M.objects.traffic_in()
-    traffic_out = AcctOut5M.objects.traffic_out()
+
+    if 'devices' not in request.session:
+        return HttpResponse("<p>Please select device at <a href='/home/'>start page</a></p>")
+
+ 
+    traffic_in = ModelIn.objects.traffic()
+    traffic_out = ModelOut.objects.traffic()
+
+    
     #Step 1: Create a DataPool with the data we want to retrieve.
     traffic_in_ds = DataPool(
         series=[{'options': {
             'source': traffic_in},
             'terms': [
-            'traffic', {'time_in' : 'stamp_updated'}]
+            'bytes', {'time_in' : 'stamp_updated'}]
             }]
             )
 
@@ -230,7 +284,7 @@ def traffic_all(request):
             series=[{'options': {
         'source' : traffic_out},
             'terms': [
-            'traffic', {'time_out':'stamp_updated'}]
+            'bytes', {'time_out':'stamp_updated'}]
             }]
             )
 
@@ -242,7 +296,7 @@ def traffic_all(request):
                      'type' : 'line', 'stacking': False,
                      'showInLegend': False},
                     'terms': {
-                        'time_in' : ['traffic']}
+                        'time_in' : ['bytes']}
                   }],
                   chart_options =
                   {'title' : {
@@ -265,7 +319,7 @@ def traffic_all(request):
                      'type' : 'line', 'stacking': False,
                      'showInLegend': False},
                     'terms': {
-                        'time_out' : ['traffic']}
+                        'time_out' : ['bytes']}
                   }],
                   chart_options =
                   {'title' : {
@@ -279,7 +333,10 @@ def traffic_all(request):
                      'xAxis' : {
                        'title' : {'text' : 'Date time'}
                        }}
-                    )      
+                    )  
+#    except Exception as e: 
+#        print (e)
+        #return HttpResponse("<p>Please select device at <a href='/home/'>start page</a></p>")    
     return  render(request, 'flow/traffic.html', {
                 'charts': [traffic_in_chart, traffic_out_chart]
                 })
@@ -288,6 +345,8 @@ def traffic_all(request):
 def traffic_report(request):   
     res = None
     form = None
+    if 'devices' not in request.session:
+        return HttpResponse("<p>Please select device at <a href='/home/'>start page</a></p>")
 
     if request.method == 'POST':
         form = TrafficReport(request.POST or None)
@@ -298,9 +357,9 @@ def traffic_report(request):
             time_range = form.cleaned_data.get('time_range')
 
             if 'Incoming' in traffic_type:
-                res = AcctIn5M.objects.values('ip_dst')
+                res = ModelIn.objects.values('ip_dst')
             else:
-                res = AcctOut5M.objects.values('ip_src')
+                res = ModelOut.objects.values('ip_src')
 
             if 'address' in request.POST and 'Incoming' in traffic_type :
                 res = res.filter(ip_dst = address)
@@ -344,6 +403,9 @@ def custom_report(request):
     res = None
     form = None
 
+    if 'devices' not in request.session:
+        return HttpResponse("<p>Please select device at <a href='/home/'>start page</a></p>")
+
     if request.method == 'POST':
         form = CustomReport(request.POST)
         # check whether it's valid:
@@ -353,16 +415,16 @@ def custom_report(request):
             time_range = form.cleaned_data.get('time_range')
 
             if "Incoming" in traffic_type:
-                res = AcctIn5M.objects.values('ip_dst', 'dst_port', 'ip_proto', 'bytes', 'stamp_updated')
+                res = ModelIn.objects.values('ip_dst', 'dst_port', 'ip_proto', 'bytes', 'stamp_updated')
             else: 
-                res = AcctOut5M.objects.values('ip_src', 'src_port', 'ip_proto', 'bytes', 'stamp_updated')
+                res = ModelOut.objects.values('ip_src', 'src_port', 'ip_proto', 'bytes', 'stamp_updated')
 
             if 'source_ip' in choice_criteria:
                 src_addr = form.cleaned_data.get('src_addr')
-                res = res.filter(ip_dst = src_addr)
+                res = res.filter(ip_src = src_addr)
             elif 'dest_ip' in choice_criteria:
                 dst_addr = form.cleaned_data.get('dst_addr')
-                res = res.filter(ip_src = dst_addr)
+                res = res.filter(ip_dst = dst_addr)
             
             if choice_criteria == 'port1' and 'Incoming' in traffic_type:
                 port = form.cleaned_data.get('port')
