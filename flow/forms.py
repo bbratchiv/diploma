@@ -5,8 +5,9 @@ from django.utils import timezone
 from django.forms.extras.widgets import SelectDateWidget
 from django.forms.widgets import SplitDateTimeWidget
 from django.core import validators
-from .models import Devices
+from .models import *
 from django.forms.models import ModelChoiceField
+from django.forms import ModelForm, CharField
 
 TRAFFIC_CHOICES = (
 	('Incoming', 'Incoming'),
@@ -25,10 +26,10 @@ CRITERIA_CHOICES = (
 
 TIME_PERIOD = (
 	('hour', "Last Hour"),
-	('3hours', "Last 3 Hours"),
-	('6hours', "Last 6 Hours"),
-	('12hours', "Last 12 Hours"),
-	('24hours', "Last 24 Hours"),
+	('hours3', "Last 3 Hours"),
+	('hours6', "Last 6 Hours"),
+	('hours12', "Last 12 Hours"),
+	('hours24', "Last 24 Hours"),
 	('week', "Last Week"),
 	('month', "Last Month"),
 	('custom', "Custom Selection"),
@@ -41,10 +42,11 @@ class TrafficReport (forms.Form):
 	checkbox   = forms.BooleanField(required=False, widget=forms.CheckboxInput( attrs = {'onclick' : 'showHide();'}))
 	address    = forms.CharField(required=False, validators=[validators.validate_ipv4_address],
 								widget=forms.TextInput(attrs={'placeholder': 'IP Address'})	)
-	start_date = forms.DateField(widget=SelectDateWidget)
-	end_date   = forms.DateField(widget=SelectDateWidget, initial=timezone.now())
 	time_range = forms.ChoiceField(required=False, choices = TIME_PERIOD, widget=forms.Select(attrs = 
 									{'onchange' : 'showHideTime();'}))
+	start_date = forms.DateField(widget=SelectDateWidget)
+	end_date   = forms.DateField(widget=SelectDateWidget, initial=timezone.now())
+
 	def clean(self):
 		cleaned_data = super(TrafficReport, self).clean()
 		checkbox = cleaned_data.get('checkbox')
@@ -54,7 +56,7 @@ class TrafficReport (forms.Form):
 
 
 class CustomReport (forms.Form):
-#	widget=forms.HiddenInput()
+
 
 	choice_criteria = forms.ChoiceField(choices = CRITERIA_CHOICES, widget=forms.Select(attrs = 
 									{'onchange' : 'showHide();'}))
@@ -90,9 +92,87 @@ class SelectDeviceForm(forms.Form):
 	device_name = forms.ChoiceField()
 
 	def __init__(self, *args, **kwargs):
-         super(forms.Form, self).__init__(*args, **kwargs)
-         self.fields['device_name'].choices = [(l.device_name, l.device_name) for l in Devices.objects.all()]
+		super(forms.Form, self).__init__(*args, **kwargs)
+		self.fields['device_name'].choices = [(l.device_ip, l.device_name) for l in Devices.objects.all()]
 
-#class AddDeviceForm(forms.Form):
-#	device_name_field = forms.CharField(validators=[validators.RegexValidator(r'^[A-Za-z]+$')])
-#	ip_address = forms.CharField(validators=[validators.validate_ipv4_address])
+
+#service classes
+from django.forms import ModelChoiceField
+class MyModelChoiceField(ModelChoiceField):
+    def label_from_instance(self, obj):
+        return "%s" % obj.rate_name
+
+class DeviceNameChoiceField(ModelChoiceField):
+    def label_from_instance(self, obj):
+        return "%s" % obj.device_name
+####
+
+
+class AddDeviceForm(ModelForm):
+    device_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Name', 'required': "true"}))
+    device_ip =  forms.CharField(validators=[validators.validate_ipv4_address], widget=forms.TextInput(attrs={'placeholder': 'IP Address', 'required': "true"}))
+    billing = MyModelChoiceField(queryset = Billing.objects.all(), empty_label=None)
+
+    class Meta:
+        model = Devices
+        fields = ['device_name', 'device_ip', 'billing']
+
+class RemoveDeviceForm(ModelForm):
+    device_name = DeviceNameChoiceField(queryset=Devices.objects.all(), empty_label=None)
+    checkbox   = forms.BooleanField(required=False, widget=forms.CheckboxInput)
+    class Meta:
+        model = Devices
+        fields = ['device_name']
+
+class ChangeDeviceBillingForm(ModelForm):
+    device_name = DeviceNameChoiceField(queryset=Devices.objects.all(), empty_label=None)
+    billing = MyModelChoiceField(queryset = Billing.objects.all(), empty_label=None)
+
+    class Meta:
+        model = Devices
+        fields = ['device_name', 'billing']
+
+class AddBillingForm(ModelForm):
+
+    STATE_CHOICES = (
+        (1, 'Yes'),
+        (0, 'No'),
+    )
+
+    rate_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'e.g. 1GB=0.02$', 'required': "true"}))
+    billable = forms.ChoiceField(choices= STATE_CHOICES)
+    cost_rate = forms.FloatField(required = False, widget=forms.TextInput(attrs={'placeholder': 'e.g. 0.05', 
+                                             }),validators=[validators.RegexValidator(regex='^[0-9,.]*$',
+                                             message='Use point to separate float numbers',code='invalid_number')])
+
+    class Meta:
+        model = Billing
+        fields=['rate_name', 'billable', 'cost_rate']
+
+class RemoveBillingForm(ModelForm):
+    rate_name= MyModelChoiceField(queryset = Billing.objects.all(), empty_label=None)
+
+    class Meta:
+        model = Billing
+        fields = ['rate_name']
+
+
+class CalculateBillingForm(SelectDeviceForm):
+
+	traffic_type = forms.ChoiceField(choices=TRAFFIC_CHOICES)
+	checkbox   = forms.BooleanField(required=False, widget=forms.CheckboxInput( 
+													attrs = {'onclick' : 'showHide();'}))
+	address    = forms.CharField(required=False, validators=[validators.validate_ipv4_address],
+								widget=forms.TextInput(attrs={'placeholder': 'IP Address'})	)
+	time_range 		= forms.ChoiceField(required=False, choices = TIME_PERIOD, widget=forms.Select(attrs = 
+									{'onchange' : 'showHideTime();'}))
+	start_date		= forms.DateField(widget=SelectDateWidget)
+	end_date   		= forms.DateField(widget=SelectDateWidget, initial=timezone.now())
+	
+	def clean(self):
+		cleaned_data = super(CalculateBillingForm, self).clean()
+		checkbox = cleaned_data.get('checkbox')
+		address  = cleaned_data.get('address')
+		if not checkbox  and  not address:
+			self.add_error('address', '(Select either all IP addresses or input one IP)')
+

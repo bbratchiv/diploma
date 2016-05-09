@@ -7,22 +7,26 @@
 {% load chartit %}
 {{charts|load_charts:"top_ip_in_chart, top_proto_in_chart, top_app_in_chart, top_packets_in_chart"}}
 
+<script type="text/javascript" >
+$(document).ready(function() {
+	$("#select").change(function(){
+		window.location.href=this.value; 
+	});
+});
+</script>
 
-<div id="select">
-<hr id="line">
-<select id="select", onchange="if (this.value) window.location.href=this.value">
+
+<div class="table-chart">
+<select id="select">
     <option value="">Choose Time Interval:</option>
     <option value="/top_incoming/1/">1 Hour</option>
     <option value="/top_incoming/6/">6 Hours</option>
     <option value="/top_incoming/24/">24 Hours</option>
     <option value="/top_incoming/0/">All</option>
 </select>
-</div>
-
-
-<div class="table-chart">
+<div class = 'help', title = "Choose right time interval when there is no data to display">?</div>
 <div id="top_ip_in_chart"></div>
-
+{% if top_ip_in %}
 	<table>
 	<tr>
 		<th>IP Destination</th>
@@ -36,13 +40,15 @@
 		</tr>
 		{% endfor %}
 	</table>
+{% else %}
+	<p align="center">No Data To Display</p>
+{% endif %}
 </div>
 
 <div class="table-chart">
 <div id="top_proto_in_chart"></div>
-	
+{% if top_ip_in %}	
 	<table>
-
 	<tr>
 		<th>IP Protocol</th>
 		<th>Traffic</th>
@@ -53,13 +59,15 @@
 		</tr>
 		{% endfor %}
 	</table>
+{% else %}
+	<p align="center">No Data To Display</p>
+{% endif %}	
 </div>
 
 <div class="table-chart">
 <div id="top_app_in_chart"></div>
-	
+{% if top_ip_in %}		
 	<table>
-
 	<tr>
 		<th>Application</th>
 		<th>Traffic</th>
@@ -70,13 +78,15 @@
 		</tr>
 		{% endfor %}
 	</table>
+{% else %}
+	<p align="center">No Data To Display</p>
+{% endif %}
 </div>
 
 <div class="table-chart">
 <div id="top_packets_in_chart"></div>
-	
+{% if top_ip_in %}	
 	<table>
-
 	<tr>
 		<th>IP Destination</th>
 		<th>Packets</th>
@@ -89,6 +99,9 @@
 		</tr>
 		{% endfor %}
 	</table>
+{% else %}
+	<p align="center">No Data To Display</p>
+{% endif %}
 </div>
 {% endblock %}
 

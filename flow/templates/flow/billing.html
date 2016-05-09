@@ -1,0 +1,174 @@
+{% extends 'flow/base.html' %}
+
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="/static/DataTables/datatables.min.css"/>
+ 
+<script type="text/javascript" src="/static/DataTables/datatables.min.js"></script>
+
+<script type="text/javascript" >
+$(document).ready(function() {
+	showHide();
+	showHideTime();
+    $('#example').DataTable( {
+    	"ordering": false,
+        "pagingType": "full_numbers",
+        "pageLength": 15,
+        dom: 'Bfrtip',
+        buttons: [
+            'copyFlash',
+            'csvFlash',
+            'pdfFlash',
+            'print'
+        ]
+    } );
+} );
+</script>
+
+<script type="text/javascript">
+<!--
+	function showHide(){
+		var chkBox = document.getElementById("{{ calculateBilling.checkbox.id_for_label }}");
+		var txtBox = document.getElementById("{{ calculateBilling.address.id_for_label }}");
+		if (chkBox.checked){
+			txtBox.disabled = true;
+			txtBox.value= ""
+		} else {
+			txtBox.disabled = false;
+
+		}
+	}
+-->
+</script>
+
+<script type="text/javascript">
+<!--
+	function showHideTime(){
+		var	selectedValue = document.getElementById("{{ calculateBilling.time_range.id_for_label}}").value;
+		var time_label = document.getElementById("custom_time");
+
+		if (selectedValue == 'custom'){
+			time_label.style.display = "inline";
+		} else {
+			time_label.style.display = "none";
+		}
+	}
+
+-->
+</script>
+
+
+<div class="report_form">
+	<form method="POST">
+		<div class="section"><span>1</span>Add Billing Option:</div>	
+		<div class="inner-wrap">
+			{% csrf_token%} 
+
+			<ul>
+				<li> <label><span>*</span>Billing Option Name <div class = 'help', title = "If Internet connection is limited we can calculate traffic cost by adding billing option with a billing rate coefficient">?</div></label>{{addBilling.rate_name}}</li>
+				<li> <label>Billable? </label>{{addBilling.billable}}</li>
+				<li> <label>Billing Rate Coefficient <div class = 'help', title = "If device is billable you should insert this coefficient. It's the cost in Dollars($) of 1GB of traffic. Float numbers should be point separated">?</div></label>{{addBilling.cost_rate}}
+					{% if addBilling.cost_rate.errors %}
+						{% for error in addBilling.cost_rate.errors %}
+							{{ error|escape }}
+						{% endfor %}
+					{% endif %}</li>
+
+				<li> <input type="submit" , value='OK',  name="Add Billing"/></li>	
+			</ul>
+		</div>
+	</form>
+</div>
+
+
+<div class="report_form">
+	<form method="POST">
+		<div class="section"><span>2</span>Remove Billing Option:</div>	
+		<div class="inner-wrap">
+		{% csrf_token%} 
+			<ul>
+				<li> <label>Rate Name: </label>{{ removeBilling.rate_name }}
+					{% if removeBilling.rate_name.errors %}
+						{% for error in removeBilling.rate_name.errors %}
+							{{ error|escape }}
+						{% endfor %}
+					{% endif %}</li>
+				<li><input type="submit", value= 'Delete', name="Delete Billing", onclick="return confirm('Are you sure?')"/></li>
+			</ul>
+		</div>
+	</form>
+</div>
+
+
+<div class="report_form">
+	<form method="POST">
+		<div class="section"><span>3</span>Change Device's Billing Option:</div>	
+		<div class="inner-wrap">
+		{% csrf_token%} 
+			<ul>
+				<li><label>Device Name: </label>{{ changeBilling.device_name }}</li>
+				<li><label>Billing Option: </label>{{ changeBilling.billing }}
+				<li><input type="submit", value= 'Change', name="Change Billing", onclick="return confirm('Are you sure?')"/></li>
+			</ul>
+		</div>
+	</form>
+</div>
+
+<div class="report_form">
+	<form method="POST">
+		<div class="section"><span>4</span>Check Traffic Cost: </div>	
+		<div class="inner-wrap">
+		{% csrf_token%} 
+		<ul>
+			<li><label>Device name: </label>{{ calculateBilling.device_name }} </li>
+			<li><label>Traffic type: </label> {{ calculateBilling.traffic_type }}</li>
+			<li><label>All IP addresses : </label> {{ calculateBilling.checkbox }}</li>	
+			<li><label>Or specify IP address : </label> 
+						{{ calculateBilling.address }}
+						{% if calculateBilling.address.errors %}
+							{% for error in calculateBilling.address.errors %}
+								{{ error|escape }}
+							{% endfor %}
+						{% endif %}</li>	
+			<li><p><label> Time Period: {{ calculateBilling.time_range }} </label> </p>
+			<li><label id='custom_time', style='display:none'>
+				<label> Start Date </label> {{calculateBilling.start_date }}
+				<label> End Date </label>{{calculateBilling.end_date }}</label></li>
+			<li><input type="submit", value= 'OK', name="Calculate Billing"/></li>
+		</ul>
+
+		{% if res == 'Not billable'%}
+			<p> This Device Is Not Billable</p>
+		{% elif res %}
+			<table id="example", class = "display" >
+			{% for object in res %}
+				      
+			    {% if forloop.first %}
+			    <thead>		    
+			    	<tr>
+			       		{% for fieldname in object.keys %}		       
+			       			<th>{% if "_traffic" in fieldname %}
+			       					{{ 'Traffic Cost in $' }} 
+			       				{% else %}
+			       					{{fieldname | title}}
+			       				{% endif %}</th>		    
+			       		{% endfor %}	       	
+			    	</tr>
+				</thead>
+			    {% endif %}
+		
+			    	<tr>		    
+			    	  	{% for key, value in object.items %}
+			    	  		<td>{% if key = 'traffic' %} {{ value | filesizeformat}} {% else %} {{ value }} {% endif %}</td>
+			    	  	{% endfor %}
+			    	</tr>
+		
+			{% endfor %}
+			</table>
+		{% else %} <p>No Result</p>
+		{% endif %}
+	</form>
+	</div>
+</div>
+
+{% endblock %}

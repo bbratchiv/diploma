@@ -8,8 +8,8 @@
 {{charts|load_charts:"top_ip_out_chart, top_proto_out_chart, top_app_out_chart, top_packets_out_chart"}}
 
 
-<div id="select">
-<hr id="line">
+
+<div class="table-chart">
 <select id="select", onchange="if (this.value) window.location.href=this.value">
     <option value="">Choose Time Interval:</option>
     <option value="/top_outgoing/1/">1 Hour</option>
@@ -17,12 +17,9 @@
     <option value="/top_outgoing/24/">24 Hours</option>
     <option value="/top_outgoing/0/">All</option>
 </select>
-</div>
-
-
-<div class="table-chart">
+<div class = 'help', title = "Choose right time interval when there is no data to display">?</div>
 <div id="top_ip_out_chart"></div>
-
+{% if top_ip_out %}
 	<table>
 	<tr>
 		<th>IP Source</th>
@@ -36,11 +33,14 @@
 		</tr>
 		{% endfor %}
 	</table>
+{% else %}
+	<p align="center">No Data To Display</p>
+{% endif %}
 </div>
 
 <div class="table-chart">
 <div id="top_proto_out_chart"></div>
-	
+{% if top_ip_out %}	
 	<table>
 	<tr>
 		<th>IP Protocol</th>
@@ -52,11 +52,14 @@
 		</tr>
 		{% endfor %}
 	</table>
+{% else %}
+	<p align="center">No Data To Display</p>
+{% endif %}	
 </div>
 
 <div class="table-chart">
 <div id="top_app_out_chart"></div>
-	
+{% if top_ip_out %}
 	<table>
 	<tr>
 		<th>Application</th>
@@ -68,11 +71,14 @@
 		</tr>
 		{% endfor %}
 	</table>
+{% else %}
+	<p align="center">No Data To Display</p>
+{% endif %}
 </div>
 
 <div class="table-chart">
 <div id="top_packets_out_chart"></div>
-	
+{% if top_ip_out %}
 	<table>
 	<tr>
 		<th>IP Source</th>
@@ -86,6 +92,9 @@
 		</tr>
 		{% endfor %}
 	</table>
+{% else %}
+	<p align="center">No Data To Display</p>
+{% endif %}
 </div>
 {% endblock %}
 

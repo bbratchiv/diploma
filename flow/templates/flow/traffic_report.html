@@ -56,62 +56,66 @@ $(document).ready(function() {
 	}
 -->
 </script>
-
-<form class = "exportTable", action="."  method="POST">	
-	<h2> Traffic Report </h2>
-	{{ form.non_field_errors }}
-	{% csrf_token%} 
-	<p><label>Choose The Type Of Traffic:</label>
-		{{form.traffic_type }}</p>
-
-	<label> All IP Addresses </label>
-		{{form.checkbox }}
-
-	<label> Or : {{form.address }} </label>
-		{% if form.address.errors %}
-			{% for error in form.address.errors %}
-				{{ error|escape }}
-			{% endfor %}
-		{% endif %}
-
-	<p><label> Time Period: {{ form.time_range }} </label> </p>
-
-	<label id='custom_time', style='display:none'>
-		<p><label> Start Date </label>
-			{{form.start_date }}</p>
-
-		<p><label> End Date </label>
-			{{form.end_date }}</p>
-	</label>
-
-	<input type="submit" name="search" value="Submit" style="width:150px"/>
-
-	<br>
-	<br>
-
-	<table id="example", class = "display" >
-	{% for object in res %}
-		      
-	    {% if forloop.first %}
-	    <thead>		    
-	    	<tr>
-	       		{% for fieldname in object.keys %}		       
-	       			<th>{{ fieldname| title }}</th>		    
-	       		{% endfor %}	       	
-	    	</tr>
-		</thead>
-	    {% endif %}
-
-	    	<tr>		    
-	    	  	{% for key, value in object.items %}
-	    	  		<td> {% if key = 'traffic' %} {{ value | filesizeformat }} {% else %} {{ value }} {% endif %}</td>
-	    	  	{% endfor %}
-	    	</tr>
-
-	{% endfor %}
-	</table>
-
-</form>
+<div class="report_form">
+	<form method="POST">	
+		<div class="section">Traffic Report:<div class = 'help', title = "You can get detailed traffic report of every IP address during certain period of time">?</div></div>	
+			<div class="inner-wrap">
+				{% csrf_token%}
+				{{ form.non_field_errors }}
+				{% csrf_token%} 
+				<ul>
+					<li><label>Choose The Type Of Traffic:</label>{{form.traffic_type }}</li>
+					<li><label> All IP Addresses {{form.checkbox }}</label></li>					
+					<li><label> Or Specify IP Address :</label>
+						{{form.address }}
+						{% if form.address.errors %}
+							{% for error in form.address.errors %}
+								{{ error|escape }}
+							{% endfor %}
+						{% endif %}</li>			
+					<li><label> Time Period: </label>{{ form.time_range }}</li>
+			
+					<label id='custom_time', style='display:none'>
+						<p><label> Start Date </label>
+							{{form.start_date }}</p>
+			
+						<p><label> End Date </label>
+							{{form.end_date }}</p>
+					</label>
+					<li><input type="submit" name="search" value="Submit"/></li>
+				</ul>
+	
+	
+			{% if res %}
+			
+			
+				<table id="example", class = "display" >
+				{% for object in res %}
+					      
+				    {% if forloop.first %}
+				    <thead>		    
+				    	<tr>
+				       		{% for fieldname in object.keys %}		       
+				       			<th>{{ fieldname| title }}</th>		    
+				       		{% endfor %}	       	
+				    	</tr>
+					</thead>
+				    {% endif %}
+			
+				    	<tr>		    
+				    	  	{% for key, value in object.items %}
+				    	  		<td> {% if key = 'traffic' %} {{ value | filesizeformat }} {% else %} {{ value }} {% endif %}</td>		
+				    	  	{% endfor %}		
+				    	</tr>		
+			
+				{% endfor %}
+				</table>
+			{% else %}
+			<p> No Result</p>
+			{% endif %}
+		</form>
+	</div>
+</div>
 
 {% endblock %}
 

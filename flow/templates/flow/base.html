@@ -4,47 +4,61 @@
 <head>
 	<title> Netflow Discovery </title>
 	<link rel="stylesheet" href="{% static 'css/flow.css' %}">
-	<link href='https://fonts.googleapis.com/css?family=Josefin+Sans:600,700italic,700,600italic,400italic,300italic,400' rel='stylesheet' type='text/css'>
+
 </head>
 
 <body>
+	<header class="main-header">
+		<nav class= "main-nav">
+			<a id ="title", href="/home/"><b>Netflow Discovery</b></a>
 
-	<div class="page-header">
-		{% if user.is_authenticated %}
-		<p class="top-menu">Hello {{ user.username }}<a href="{% url 'django.contrib.auth.views.logout' %}" class = "top-menu"> (Log out)</a></p>
-		{% else %}
-		<a href="{% url 'django.contrib.auth.views.login' %}" class = "top-menu">Log in</a>
-		{% endif %}
+			<ul>
+			  <li><a href="/home/">Home</a></li>
+			  <li><a href="/top_incoming/1/">Top Incoming</a></li>
+			  <li><a href="/top_outgoing/1/">Top Outgoing</a></li>
+			  <li><a href="/traffic/">All Traffic</a></li>
+			  <li><a href="/traffic_report/">Traffic Report</a></li>
+			  <li><a href="/custom_report/">Custom Report</a></li>
+			  <li><a href="/billing/">Billing</a></li>
+			</ul> 
+		</nav>
+	</header>
 
-		<h1><a href="/home/">Netflow Discovery</a></h1>
-		<h5 style="color: #ffffff;">Selected Device: {% if  request.session.devices%} {{ request.session.devices }} {% else %} None {% endif %}</h5> 
-
+	<div class="page-header2">
+		<span id="float-left">
+				Selected Device:   
+			{% if  request.session.devices %} 
+				{{ request.session.devices }}
+			{% else %} 	
+				None 
+			{% endif %} 
+		</span>
+		<span id="float-right">
+			{% if user.is_authenticated %}
+				Hello {{ user.username }}
+				<a href="{% url 'django.contrib.auth.views.logout' %}">(Log out)</a>
+			{% else %}
+				<a href= "{% url 'django.contrib.auth.views.login' %}">Log in</a>
+			{% endif %}
+		</span>
+		<div style="clear:both;"></div>
 
 	</div>
 
 	{% block authentication %}
-	<div id="menu">
 
-		<ul>
-		  <li><a href="/home/"><h3>Home</h3></a></li>
-		  <li><a href="/top_incoming/1/"><h3>Top Incoming</h3></a></li>
-		  <li><a href="/top_outgoing/1/"><h3>Top Outgoing</h3></a></li>
-		  <li><a href="/traffic/"><h3>All Traffic</h3></a></li>
-		  <li><a href="/traffic_report/"><h3>Traffic Report</h3></a></li>
-		  <li><a href="/custom_report/"><h3>Custom Report</h3></a></li>
-		</ul> 
-	</div>
-	
 	<script type="text/javascript" src={% static 'jquery.min.js' %}></script>
 	
-	{% block content %}
+	<div class= "content">
+		{% block content %}
+		
+		{% endblock %}
 	
-	{% endblock %}
+	</div>
 	{% endblock %}
 
 	
-	<footer>Server time: {% now "jS F Y H:i" %}
-	</footer>
+	<footer>Server time: {% now "jS F Y H:i" %}</footer>
 </body>
 
 </html>

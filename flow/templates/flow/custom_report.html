@@ -11,6 +11,7 @@ $(document).ready(function() {
 	showHide();
 	showHideTime();
     $('#example').DataTable( {
+    	"ordering": false,
         "pagingType": "full_numbers",
         "pageLength": 15,
         dom: 'Bfrtip',
@@ -73,76 +74,73 @@ $(document).ready(function() {
 -->
 </script>
 
-<form class = "exportTable", action="."  method="POST">	
-	<h2> Custom Report </h2>
+<div class="report_form">
+	<form method="POST">	
+		<div class="section">Custom Traffic Report:<div class = 'help', title = "You can get detailed traffic report by choosing any search criteria">?</div></div>	
+			<div class="inner-wrap">
+				{% csrf_token%}
+					<ul>
+						<li><label>Choose Search Criteria:</label> {{ form1.choice_criteria }}</li>  
+						<!---->
+							{{ form1.src_addr }}
+						<!---->
+							{{ form1.dst_addr }}
+						<!---->
+							 {{ form1.port }} 
+						<!---->
+							 {{ form1.pFrom }} {{ form1.pTo }} 
+						<!---->
+							 {{ form1.proto}} </p>
+						<!---->
+						<li><label> Traffic </label>{{form1.traffic_type }}
 
-	{% csrf_token%} 
-<!---->
-	<p><label>Choose Criteria: {{ form1.choice_criteria }}</label>  
-		
-<!---->
-	{{ form1.src_addr }}
+							{% if form1.traffic_type.errors %}
+								{% for error in form1.traffic_type.errors %}
+									{{ error|escape }}
+								{% endfor %}
+							{% endif %}</li>
 
-<!---->
-	{{ form1.dst_addr }}
+						<li><label> Time Period: </label> {{ form1.time_range }} </li>
 
-<!---->
-	 {{ form1.port }} 
-<!---->
-	 {{ form1.pFrom }} {{ form1.pTo }} 
-<!---->
-	 {{ form1.proto}} </p>
-<!---->
-	<label> Traffic </label>
-		{{form1.traffic_type }} 
+						<label id='custom_time', style='display:none'>
+							<p><label> Start Date </label>
+								{{form1.start_date }}</p>
+					
+							<p><label> End Date </label>
+								{{form1.end_date }}</p>
+						</label>
+						<li><input type="submit" name="search", value="Submit"/></li>
+					</ul>
+					
 
-		{% if form1.traffic_type.errors %}
-			{% for error in form1.traffic_type.errors %}
-				{{ error|escape }}
-			{% endfor %}
-		{% endif %}
-<!---->
-	<p><label> Time Period: {{ form1.time_range }} </label> </p>
-<!---->
-	<label id='custom_time', style='display:none'>
-		<p><label> Start Date </label>
-			{{form1.start_date }}</p>
-
-		<p><label> End Date </label>
-			{{form1.end_date }}</p>
-	</label>
-	<p><input type="submit" name="search", value="Submit", style="width:170px"/></p>
-
-{% if res1 %}
-	<br>
-	<br>
-
-	<table id="example" class="display">
-	{% for object in res1 %}
-		      
-	    {% if forloop.first %}
-	    <thead>		    
-	    	<tr>
-	       		{% for fieldname in object.keys %}		       
-	       			<th>{{ fieldname | title }}</th>		    
-	       		{% endfor %}	       	
-	    	</tr>
-		</thead>
-		{% endif %}
-
-	    	<tr>		    
-	    	  	{% for key, value in object.items %}
-	    	  		<td> {% if key = 'bytes' %} {{ value | filesizeformat }} {% else %} {{ value }} {% endif %}</td>
-	    	  	{% endfor %}
-	    	</tr>
-
-	{% endfor %}
-	</table>
-
-{% else %}
-<p> No Result</p>
-{% endif %}
-</form>
-
+					{% if res1 %}
+					
+						<table id="example" class="display">
+						{% for object in res1 %}
+							      
+						    {% if forloop.first %}
+						    <thead>		    
+						    	<tr>
+						       		{% for fieldname in object.keys %}		       
+						       			<th>{{ fieldname | title }}</th>		    
+						       		{% endfor %}	       	
+						    	</tr>
+							</thead>
+							{% endif %}
+					
+						    	<tr>		    
+						    	  	{% for key, value in object.items %}
+						    	  		<td> {% if key = 'bytes' %} {{ value | filesizeformat }} {% else %} {{ value }} {% endif %}</td>
+						    	  	{% endfor %}
+						    	</tr>
+					
+						{% endfor %}
+						</table>
+						{% else %}
+							<p> No Result</p>
+					{% endif %}
+		</form>
+	</div>
+</div>
 {% endblock %}
 

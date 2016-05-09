@@ -2,27 +2,78 @@
 
 {% block content %}
 
+<div class="report_form">
+	<form method="POST">
+		<div class="section"><span>1</span>Choose Device To Work With:</div>	
+		<div class="inner-wrap">
+			{% csrf_token%} 
 
-<form class = "exportTable", action="."  method="POST">	
-	<h2> Choose device to work with </h2>
-	{% csrf_token%} 
+			<div id = 'device_table'>
+				<table>
+					<thead>
+					<tr>
+						<th>Device Name</th>
+						<th>Device IP</th>
+						<th>Billing Option</th>
+					</tr>
+					</thead>
 
-	<label for="devices">Devices:</label>
-		
-		{% for element in selectDevice.device_name %} {{element}} {% endfor %}
+					<tr>
+						{% for p in devices %}
+							<td>{{ p.device_name }}</td>
+							<td>{{ p.device_ip}}</td>
+							<td>{{ p.billing.rate_name }}</td>
+					</tr>
+						{% endfor %}
 
-	<input type="submit" , value="Select Device", style="width:170px", onclick="return alert('Device activated')"/>
-</form>
-<!--
-<form class = "exportTable", action="."  method="POST">
-		<h2> OR </h2>
-	<p><label> Add Device: </label></p>
-		{% csrf_token%} 
-	{{ addDevice.device_name }} {{ addDevice.device_ip }} 
+				</table>
+			</div>	
 
-	<input type="submit" , value="Add Device", style="width:170px", onclick="return alert('Device added')"/>
+			<ul>
+				<li><label for="devices">Activate Device:</label>
+				{% for element in selectDevice.device_name %} {{element}} {% endfor %}
+				</li>
+				<li><input type="submit" , value='OK',  name="Select Device", 
+						onclick="return alert('Device activated')"/>
+				</li>
+			</ul>
+		</div>
+	</form>
+</div>
 
+<div class="report_form">
+	<form  method="POST">
+		<div class="section"><span>2</span>Add Device:</div>	
+		<div class="inner-wrap">
+			{% csrf_token%} 
+		<ul>
+			<li><label><span>*</span>Device Name:</label>{{ addDevice.device_name }}</li>
+			<li><label><span>*</span>IP Address:</label>{{ addDevice.device_ip }}
+				{% if addDevice.device_ip.errors %}
+					{% for error in addDevice.device_ip.errors %}
+						{{ error|escape }}
+					{% endfor %}
+				{% endif %}			
+			</li>
+			<li><label>Billing Rate Name: </label>{{addDevice.billing}}</li>
+			<li><input type="submit", value= 'OK', name="Add Device"/></li>
+		</ul>		
+		</div>
+	</form>
+</div>
 
-</form>
--->
+<div class="report_form">
+	<form  method="POST">
+		<div class="section"><span>3</span>Delete Device:</div>	
+		<div class="inner-wrap">
+			{% csrf_token%}
+			<ul>
+				<li><label>Device Name: </label>{{removeDevice.device_name}}</li>
+				<li><label>Remove All Related Data?<div class = 'help', title = "Every record related to  this device IP will be removed">?</div></label>{{ removeDevice.checkbox }}</li>
+				<li><input type="submit", value= 'Delete', name="Remove Device", onclick="return confirm('Are you sure?')"/></li>		
+			</ul>
+		</div>
+	</form>
+</div>
+
 {% endblock %}
