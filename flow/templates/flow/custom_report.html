@@ -2,9 +2,9 @@
 
 {% block content %}
 
-<link rel="stylesheet" type="text/css" href="/static/DataTables/datatables.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"/>
  
-<script type="text/javascript" src="/static/DataTables/datatables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
 
 <script type="text/javascript" >
 $(document).ready(function() {
@@ -16,9 +16,10 @@ $(document).ready(function() {
         "pageLength": 15,
         dom: 'Bfrtip',
         buttons: [
-            'copyFlash',
-            'csvFlash',
-            'pdfFlash',
+            'copy',
+            'excel',
+            'csv',
+            'pdf',
             'print'
         ]
     } );
@@ -76,7 +77,7 @@ $(document).ready(function() {
 
 <div class="report_form">
 	<form method="POST">	
-		<div class="section">Custom Traffic Report:<div class = 'help', title = "You can get detailed traffic report by choosing any search criteria">?</div></div>	
+		<div class="section">Custom Report:<div class = 'help', title = "You can get detailed traffic report by choosing any search criteria">?</div></div>	
 			<div class="inner-wrap">
 				{% csrf_token%}
 					<ul>
@@ -115,6 +116,8 @@ $(document).ready(function() {
 
 					{% if res1 %}
 					
+						<p align="right"> Traffic Sum {{ sum2.traffic__sum |filesizeformat }}</p>
+
 						<table id="example" class="display">
 						{% for object in res1 %}
 							      
@@ -130,7 +133,7 @@ $(document).ready(function() {
 					
 						    	<tr>		    
 						    	  	{% for key, value in object.items %}
-						    	  		<td> {% if key = 'bytes' %} {{ value | filesizeformat }} {% else %} {{ value }} {% endif %}</td>
+						    	  		<td> {% if key = 'traffic' %} {{ value | filesizeformat }} {% else %} {{ value }} {% endif %}</td>
 						    	  	{% endfor %}
 						    	</tr>
 					

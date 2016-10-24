@@ -2,9 +2,9 @@
 
 {% block content %}
 
-<link rel="stylesheet" type="text/css" href="/static/DataTables/datatables.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"/>
  
-<script type="text/javascript" src="/static/DataTables/datatables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
 
 <script type="text/javascript" >
 $(document).ready(function() {
@@ -16,9 +16,10 @@ $(document).ready(function() {
         "pageLength": 15,
         dom: 'Bfrtip',
         buttons: [
-            'copyFlash',
-            'csvFlash',
-            'pdfFlash',
+            'copy',
+            'excel',
+            'csv',
+            'pdf',
             'print'
         ]
     } );
@@ -58,9 +59,8 @@ $(document).ready(function() {
 </script>
 <div class="report_form">
 	<form method="POST">	
-		<div class="section">Traffic Report:<div class = 'help', title = "You can get detailed traffic report of every IP address during certain period of time">?</div></div>	
+		<div class="section">Traffic Report:<div class = 'help', title = "You can get detailed traffic report of every IP address in certain period of time">?</div></div>	
 			<div class="inner-wrap">
-				{% csrf_token%}
 				{{ form.non_field_errors }}
 				{% csrf_token%} 
 				<ul>
@@ -87,16 +87,16 @@ $(document).ready(function() {
 	
 	
 			{% if res %}
-			
-			
+				
+				<p align="right"> Traffic Sum {{ sum1.traffic__sum |filesizeformat }}</p>
+				
 				<table id="example", class = "display" >
 				{% for object in res %}
-					      
 				    {% if forloop.first %}
 				    <thead>		    
 				    	<tr>
 				       		{% for fieldname in object.keys %}		       
-				       			<th>{{ fieldname| title }}</th>		    
+				       			<th>{{ fieldname| title }}</th>	    
 				       		{% endfor %}	       	
 				    	</tr>
 					</thead>

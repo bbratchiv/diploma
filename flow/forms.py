@@ -25,11 +25,11 @@ CRITERIA_CHOICES = (
 )
 
 TIME_PERIOD = (
-	('hour', "Last Hour"),
-	('hours3', "Last 3 Hours"),
-	('hours6', "Last 6 Hours"),
-	('hours12', "Last 12 Hours"),
-	('hours24', "Last 24 Hours"),
+	('one', "Last Hour"),
+	('three', "Last 3 Hours"),
+	('six', "Last 6 Hours"),
+	('twelve', "Last 12 Hours"),
+	('twentyfour', "Last 24 Hours"),
 	('week', "Last Week"),
 	('month', "Last Month"),
 	('custom', "Custom Selection"),

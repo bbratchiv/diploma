@@ -32,6 +32,7 @@ class FlowQuerySets(models.QuerySet):
             queryset = queryset.filter(stamp_updated__gt=_6hours)
         elif pk == "24":
             queryset = queryset.filter(stamp_updated__gt=_24hours)
+
         queryset = queryset.annotate(traffic=Sum('bytes')).order_by('-traffic')[:10]
         return queryset
 
@@ -156,7 +157,7 @@ class TrafficIn(models.Model):
     ip_proto = models.CharField(max_length=6)
     packets = models.IntegerField()
     bytes = models.BigIntegerField()
-    peer_ip_src = models.CharField(max_length=15)
+    peer_ip_src = models.CharField(max_length=15) #device ip
     stamp_inserted = models.DateTimeField()
     stamp_updated = models.DateTimeField(blank=True, null=True)
     
@@ -174,7 +175,7 @@ class TrafficOut(models.Model):
     ip_proto = models.CharField(max_length=6)
     packets = models.IntegerField()
     bytes = models.BigIntegerField()
-    peer_ip_src = models.CharField(max_length=15)
+    peer_ip_src = models.CharField(max_length=15) #device ip
     stamp_inserted = models.DateTimeField()
     stamp_updated = models.DateTimeField(blank=True, null=True)
     objects = FlowQuerySets.as_manager()

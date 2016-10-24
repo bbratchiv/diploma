@@ -1,6 +1,10 @@
-Untitled Document 1
-myvenv
-flow/static
+lib/
+local/
+flow/migrations/
+flow/__pycache__/
 static/
-
-
+venv/
+pip-selfcheck.json
+include/
+bin/
+create_db.sql

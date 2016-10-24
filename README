@@ -1,0 +1,24 @@
+1) Installation of pip, virtualenv, libs
+sudo apt-get install python3-pip
+pip3 install virtualenv
+sudo apt-get install python3-dev libmysqlclient-dev
+
+2)Choose interpreter and create virtual environment in project directory
+virtualenv -p /usr/bin/python3.5 venv
+
+3)Start using virtual environment
+source venv/bin/activate
+
+4) install project dependencies
+pip3 install -r requirements.txt 
+
+5)Setup db:
+mysql> create database pmacct;
+mysql> grant all privileges on pmacct.* to 'site_usert' identified by "arealsmartpwd"; 
+mysql>flush privileges;
+mysql>source ~/create_db.sql (creates tables for app)
+
+6)create superuser
+python manage.py createsuperuser --username=admin --email=joe@example.com
+
+

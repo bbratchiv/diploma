@@ -4,7 +4,7 @@ from chartit import DataPool, Chart
 from django.http import  HttpResponseNotFound, HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from .forms import *
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from datetime import datetime, timedelta
 from django.apps import apps
 from django.db import models
@@ -14,7 +14,7 @@ hour = datetime.now() - timedelta(hours=1)
 _3hours = datetime.now() - timedelta(hours=3)
 _6hours = datetime.now() - timedelta(hours=6)
 _12hours = datetime.now() - timedelta(hours=12)
-day = datetime.now().date() - timedelta(days=1)
+_24hours = datetime.now() - timedelta(hours=24)
 week = datetime.now() - timedelta(weeks=1)
 month = datetime.now() - timedelta(days=30)
 
@@ -58,27 +58,12 @@ def top_incoming(request, pk):
     if 'devices' not in request.session:
         return HttpResponse("<p>Please select device at <a href='/home/'>start page</a></p>")
 
-    if pk == "0":
+    if pk =="0" or pk =="1" or pk =="6" or pk =="24":
         top_ip_in      = TrafficIn.objects.top_ip_in(pk, request.session['devices'])
         top_proto_in   = TrafficIn.objects.top_proto_in(pk, request.session['devices'])  
         top_app_in     = TrafficIn.objects.top_app_in(pk, request.session['devices'])
         top_packets_in = TrafficIn.objects.top_packets_in(pk, request.session['devices'])
-    elif pk == "1":
-        top_ip_in      = TrafficIn.objects.top_ip_in(pk, request.session['devices'])
-        top_proto_in   = TrafficIn.objects.top_proto_in(pk, request.session['devices'])  
-        top_app_in     = TrafficIn.objects.top_app_in(pk, request.session['devices'])
-        top_packets_in = TrafficIn.objects.top_packets_in(pk, request.session['devices'])
-    elif pk == "6":
-        top_ip_in      = TrafficIn.objects.top_ip_in(pk, request.session['devices'])
-        top_proto_in   = TrafficIn.objects.top_proto_in(pk, request.session['devices'])  
-        top_app_in     = TrafficIn.objects.top_app_in(pk, request.session['devices'])
-        top_packets_in = TrafficIn.objects.top_packets_in(pk, request.session['devices'])     
-    elif pk == "24":
-        top_ip_in      = TrafficIn.objects.top_ip_in(pk, request.session['devices'])
-        top_proto_in   = TrafficIn.objects.top_proto_in(pk, request.session['devices'])  
-        top_app_in     = TrafficIn.objects.top_app_in(pk, request.session['devices'])
-        top_packets_in = TrafficIn.objects.top_packets_in(pk, request.session['devices']) 
-    else: 
+    else:
         return   HttpResponseNotFound('<h1>Page not found</h1>')
     #Step 1: Create a DataPool with the data we want to retrieve.
     top_ip_in_ds = DataPool(series=[{'options': {
@@ -177,26 +162,11 @@ def top_outgoing(request, pk):
     if 'devices' not in request.session:
         return HttpResponse("<p>Please select device at <a href='/home/'>start page</a></p>")
 
-    if pk == "0":
+    if pk =="0" or pk =="1" or pk =="6" or pk =="24":
         top_ip_out      = TrafficOut.objects.top_ip_out(pk, request.session['devices'])
         top_proto_out   = TrafficOut.objects.top_proto_out(pk, request.session['devices'])  
         top_app_out     = TrafficOut.objects.top_app_out(pk, request.session['devices'])
         top_packets_out = TrafficOut.objects.top_packets_out(pk, request.session['devices'])
-    elif pk == "1":
-        top_ip_out      = TrafficOut.objects.top_ip_out(pk, request.session['devices'])
-        top_proto_out   = TrafficOut.objects.top_proto_out(pk, request.session['devices'])  
-        top_app_out     = TrafficOut.objects.top_app_out(pk, request.session['devices'])
-        top_packets_out = TrafficOut.objects.top_packets_out(pk, request.session['devices'])
-    elif pk == "6":
-        top_ip_out      = TrafficOut.objects.top_ip_out(pk, request.session['devices'])
-        top_proto_out   = TrafficOut.objects.top_proto_out(pk, request.session['devices'])  
-        top_app_out     = TrafficOut.objects.top_app_out(pk, request.session['devices'])
-        top_packets_out = TrafficOut.objects.top_packets_out(pk, request.session['devices'])     
-    elif pk == "24":
-        top_ip_out      = TrafficOut.objects.top_ip_out(pk, request.session['devices'])
-        top_proto_out   = TrafficOut.objects.top_proto_out(pk, request.session['devices'])  
-        top_app_out     = TrafficOut.objects.top_app_out(pk, request.session['devices'])
-        top_packets_out = TrafficOut.objects.top_packets_out(pk, request.session['devices']) 
     else: 
         return  HttpResponseNotFound('<h1>Page not found</h1>')   
     #Step 1: Create a DataPool with the data we want to retrieve.
@@ -400,6 +370,7 @@ def traffic_all(request):
 def traffic_report(request):   
     res = None
     form = None
+    sum1 = None #for summing traffic
     if 'devices' not in request.session:
         return HttpResponse("<p>Please select device at <a href='/home/'>start page</a></p>")
 
@@ -421,16 +392,16 @@ def traffic_report(request):
             elif 'address' in request.POST and 'Outgoing' in traffic_type :
                 res = res.filter(ip_src = address)
         
-            if 'hour' in time_range:
+            if 'one' in time_range:
                 res = res.filter(stamp_updated__gt = hour)
-            elif 'hours3' in time_range:
+            elif 'three' in time_range:
                 res = res.filter(stamp_updated__gt= _3hours)
-            elif 'hours6' in time_range:
+            elif 'six' in time_range:
                 res = res.filter(stamp_updated__gt= _6hours)
-            elif 'hours12' in time_range:
+            elif 'twelve' in time_range:
                 res = res.filter(stamp_updated__gt= _12hours)
-            elif 'hours24' in time_range:
-                res = res.filter(stamp_updated__gt= day)
+            elif 'twentyfour' in time_range:
+                res = res.filter(stamp_updated__gt= _24hours)
             elif 'week' in time_range:
                 res = res.filter(stamp_updated__gt= week)
             elif 'month' in time_range:
@@ -442,7 +413,8 @@ def traffic_report(request):
                                 stamp_updated__lte=end_date)
 
             res = res.annotate(traffic=Sum('bytes'))\
-                            .order_by('-traffic')[:500]
+                            .order_by('-traffic')
+            sum1 = res.aggregate(Sum('traffic'))
     else:
         form = TrafficReport()
 
@@ -451,12 +423,14 @@ def traffic_report(request):
                     {
                        'form' : form,
                        'res'  : res,
+                       'sum1' : sum1
                     })
 
 @login_required
 def custom_report(request):   
     res = None
     form = None
+    sum2 = None # for summing traffic
 
     if 'devices' not in request.session:
         return HttpResponse("<p>Please select device at <a href='/home/'>start page</a></p>")
@@ -470,10 +444,10 @@ def custom_report(request):
             time_range = form.cleaned_data.get('time_range')
 
             if "Incoming" in traffic_type:
-                res = TrafficIn.objects.values('ip_dst', 'dst_port', 'ip_proto', 'bytes', 'stamp_updated')\
+                res = TrafficIn.objects.values('ip_dst', 'dst_port', 'ip_proto', 'stamp_updated')\
                                                 .filter(peer_ip_src=request.session['devices'])
             else: 
-                res = TrafficOut.objects.values('ip_src', 'src_port', 'ip_proto', 'bytes', 'stamp_updated')\
+                res = TrafficOut.objects.values('ip_src', 'src_port', 'ip_proto', 'stamp_updated')\
                                                 .filter(peer_ip_src=request.session['devices'])
 
             if 'source_ip' in choice_criteria:
@@ -505,16 +479,16 @@ def custom_report(request):
                 proto = form.cleaned_data.get('proto')
                 res = res.filter(ip_proto = proto)
             
-            if 'hour' in time_range:
+            if 'one' in time_range:
                 res = res.filter(stamp_updated__gte = hour)
-            elif '3hours' in time_range:
-                res = res.filter(stamp_updated__gte= hours3)
-            elif '6hours' in time_range:
-                res = res.filter(stamp_updated__gte= hours6)
-            elif '12hours' in time_range:
-                res = res.filter(stamp_updated__gte= hours12)
-            elif '24hours' in time_range:
-                res = res.filter(stamp_updated__gte= hours24)
+            elif 'three' in time_range:
+                res = res.filter(stamp_updated__gte= _3hours)
+            elif 'six' in time_range:
+                res = res.filter(stamp_updated__gte= _6hours)
+            elif 'twelve' in time_range:
+                res = res.filter(stamp_updated__gte= _12hours)
+            elif 'twentyfour' in time_range:
+                res = res.filter(stamp_updated__gte= _24hours)
             elif 'week' in time_range:
                 res = res.filter(stamp_updated__gte= week)
             elif 'month' in time_range:
@@ -525,6 +499,10 @@ def custom_report(request):
                 res = res.filter(stamp_updated__gte=start_date,
                                 stamp_updated__lte=end_date)
 
+            res = res.annotate(traffic=Sum('bytes'))\
+                            .order_by('-traffic')
+            sum2 = res.aggregate(Sum('traffic'))
+
             
     else:
         form = CustomReport()
@@ -533,15 +511,17 @@ def custom_report(request):
                 {
                     'form1' : form,
                     'res1' : res,
+                    'sum2' : sum2
                 })
 
 @login_required
 def billing(request):
     res = None
     billing_rate = None
+    sum3 = None
 
-    if 'devices' not in request.session:
-        return HttpResponse("<p>Please select device at <a href='/home/'>start page</a></p>")
+#    if 'devices' not in request.session:
+#        return HttpResponse("<p>Please select device at <a href='/home/'>start page</a></p>")
 
 
     form = AddBillingForm()
@@ -586,16 +566,16 @@ def billing(request):
             elif 'address' in request.POST and 'Outgoing' in traffic_type :
                 res = res.filter(ip_src = address)
             
-            if 'hour' in time_range:
+            if 'one' in time_range:
                 res = res.filter(stamp_updated__gt = hour)
-            elif 'hours3' in time_range:
+            elif 'three' in time_range:
                 res = res.filter(stamp_updated__gt= _3hours)
-            elif 'hours6' in time_range:
+            elif 'six' in time_range:
                 res = res.filter(stamp_updated__gt= _6hours)
-            elif 'hours12' in time_range:
+            elif 'twelve' in time_range:
                 res = res.filter(stamp_updated__gt= _12hours)
-            elif 'hours24' in time_range:
-                res = res.filter(stamp_updated__gt= day)
+            elif 'twentyfour' in time_range:
+                res = res.filter(stamp_updated__gt= _24hours)
             elif 'week' in time_range:
                 res = res.filter(stamp_updated__gt= week)
             elif 'month' in time_range:
@@ -608,7 +588,10 @@ def billing(request):
             
             res = res.annotate(traffic=Sum('bytes'))
             res = res.annotate(_traffic=Sum('bytes'))\
-                            .order_by('-traffic')[:500]               
+                            .order_by('-traffic')   
+
+            sum3 = res.aggregate(Sum('traffic'))
+            
             #  modifying traffic field calculating traffic cost
             billing_id = Devices.objects.values("billing_id").filter(device_ip=request.session['devices'])
             cost_rate_coef = Billing.objects.values("cost_rate").filter(billing_id__in=billing_id)  
@@ -626,5 +609,5 @@ def billing(request):
 
     return render(request, 'flow/billing.html', {'addBilling' : form, 'removeBilling' : form2,
                             'calculateBilling' : form3, 'changeBilling' : form4,
-                            'res' : res})
+                            'res' : res, 'sum3' : sum3})
 
