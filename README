@@ -21,4 +21,5 @@ mysql>source ~/create_db.sql (creates tables for app)
 6)create superuser
 python manage.py createsuperuser --username=admin --email=joe@example.com
 
-
+7)run server
+./manage.py runserver
