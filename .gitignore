@@ -1,8 +1,7 @@
-manage.py
 lib/
 local/
-flow/migrations
-flow/__pycache__
+flow/migrations/
+flow/__pycache__/
 static/
 venv/
 pip-selfcheck.json

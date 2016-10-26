@@ -5,7 +5,7 @@ CREATE TABLE `traffic_in` (
 	`ip_proto` char(6) NOT NULL,
 	`packets` int NOT NULL,
 	`bytes` bigint NOT NULL,
-	`device_id` smallint NOT NULL,
+	`peer_ip_src` char(15) NOT NULL,
 	`stamp_inserted` DATETIME NOT NULL,
 	`stamp_updated` DATETIME,
 	PRIMARY KEY (`id`)
@@ -18,14 +18,14 @@ CREATE TABLE `traffic_out` (
 	`ip_proto` char(6) NOT NULL,
 	`packets` int NOT NULL,
 	`bytes` bigint NOT NULL,
-	`device_id` smallint NOT NULL,
+	`peer_ip_src` char(15) NOT NULL,
 	`stamp_inserted` DATETIME NOT NULL,
 	`stamp_updated` DATETIME,
 	PRIMARY KEY (`id`)
 );
 
 CREATE TABLE `billing` (
-	`billing_id` bigint NOT NULL,
+	`billing_id` bigint NOT NULL AUTO_INCREMENT,
 	`rate_name` char(15) NOT NULL,
 	`billable` bool NOT NULL,
 	`cost_rate` FLOAT(10) NOT NULL,
