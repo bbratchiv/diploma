@@ -1,5 +1,5 @@
-INSERT INTO devices ('device_id', 'device_name', 'device_ip', 'billing_id') VALUES (1, 'Cisco', '192.168.8.1', 1);
-INSERT INTO billing ('billing_id', 'rate_name', 'billable', 'cost_rate') VALUES (1, '1GB=0.01$', 1, 0.01);
+INSERT INTO devices (`device_id`, `device_name`, `device_ip`, `billing_id`) VALUES (1, 'Cisco', '192.168.8.1', 1);
+INSERT INTO billing (`billing_id`, `rate_name`, `billable`, `cost_rate`) VALUES (1, '1GB=0.01$', 1, 0.01);
 INSERT INTO traffic_in (`id`, `ip_dst`, `dst_port`, `ip_proto`, `packets`, `bytes`, `peer_ip_src`, `stamp_inserted`, `stamp_updated`) VALUES (1, '232.235.125.170', 22, 'ssh', 1, 481550, '192.168.88.1', '2005-10-05 09:58:59', '2012-11-25 07:43:42');
 INSERT INTO traffic_in (`id`, `ip_dst`, `dst_port`, `ip_proto`, `packets`, `bytes`, `peer_ip_src`, `stamp_inserted`, `stamp_updated`) VALUES (2, '148.229.217.139', 354, 'icmp', 25694, 5, '192.168.88.1', '1996-12-06 23:16:52', '2003-06-06 01:47:01');
 INSERT INTO traffic_in (`id`, `ip_dst`, `dst_port`, `ip_proto`, `packets`, `bytes`, `peer_ip_src`, `stamp_inserted`, `stamp_updated`) VALUES (3, '131.56.130.14', 928, 'udp', 391530, 6, '192.168.88.1', '1984-09-16 08:23:30', '2004-08-18 17:57:15');
